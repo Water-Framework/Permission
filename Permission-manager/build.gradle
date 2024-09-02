@@ -50,6 +50,7 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:' + project.junitJupiterVersion
 	testImplementation 'org.junit.jupiter:junit-jupiter-engine:' + project.junitJupiterVersion
 	testImplementation 'org.atteo.classindex:classindex:' + project.atteoClassIndexVersion
+	testImplementation project (":Permission-service")
 	
 	//for testing purpose we use hibernate as persistence provider
 	testImplementation 'it.water.repository.jpa:JpaRepository-test-utils:'+ project.waterVersion

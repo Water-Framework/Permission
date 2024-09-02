@@ -118,7 +118,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                                 "from WaterPermission p where p.roleId = :roleId and userId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = 0",
                                 WaterPermission.class).setParameter("roleId", roleId)
                         .setParameter("entityResourceName", entityResourceName).getSingleResult();
-            } catch (NoResultException e) {
+            } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.debug(e.getMessage(), e);
             }
             return p;

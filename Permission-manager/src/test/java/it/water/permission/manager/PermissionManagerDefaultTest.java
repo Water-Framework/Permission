@@ -1,7 +1,11 @@
 package it.water.permission.manager;
 
+import it.water.core.api.action.ActionList;
+import it.water.core.api.action.ActionsManager;
 import it.water.core.api.bundle.Runtime;
 import it.water.core.api.model.PaginableResult;
+import it.water.core.api.model.Resource;
+import it.water.core.api.model.User;
 import it.water.core.api.permission.PermissionManager;
 import it.water.core.api.permission.Role;
 import it.water.core.api.permission.RoleManager;
@@ -24,6 +28,8 @@ import it.water.repository.entity.model.exceptions.DuplicateEntityException;
 import lombok.Setter;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.Map;
 
 /**
  * Generated with Water Generator.
@@ -60,13 +66,24 @@ public class PermissionManagerDefaultTest implements Service {
     //test role manager
     private TestUserManager testUserManager;
 
+    @Inject
+    @Setter
+    private ActionsManager actionsManager;
+
     //admin user
     private it.water.core.api.model.User adminUser;
-    
+    private User viewerUser;
+    private User managerUser;
+    private User editoriUser;
+    private Map<String, ActionList<Resource>> actionsMap;
     @BeforeAll
     public void beforeAll() {
         //impersonate admin so we can test the happy path
         adminUser = testUserManager.findUser("admin");
+        actionsManager.registerActions(TestResource.class);
+        actionsMap = actionsManager.getActions();
+        Assertions.assertTrue(actionsMap.containsKey(TestResource.class.getName()));
+        Assertions.assertEquals(5,actionsMap.get(TestResource.class.getName()).getList().size());
     }
     /**
      * Testing basic injection of basic component for permission entity.
