@@ -1,0 +1,17 @@
+Bundle-Name: Permission Service Bundle
+Bundle-SymbolicName: Permission
+Bundle-Activator: it.water.implementation.osgi.bundle.WaterBundleActivator
+Import-Package: \
+    org.osgi.framework.*,\
+    org.osgi.service.*,\
+    org.osgi.util.*,\
+    org.slf4j.*,\
+    org.apache.aries.jpa.*,\
+    org.apache.aries.cdi.*,\
+    it.water.core.*,\
+    it.water.implementation.osgi.*
+Export-Package: \
+    it.water.permission.*
+DynamicImport-Package: *
+-cdiannotations: *;discover=annotated_by_bean
+-fixupmessages "Classes found in the wrong directory"; restrict:=error; is:=warning

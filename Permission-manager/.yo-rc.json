@@ -1,0 +1,9 @@
+{
+    "generator-water": {
+        "inner-project": true,
+        "project-type": "service",
+        "projectName": "Permission",
+        "projectGroupId": "it.water.permission",
+        "projectVersion": "3.0.0"
+    }
+}
