@@ -351,9 +351,9 @@ public class PermissionManagerDefault implements PermissionManager {
             }
             // it initialize the value with the general value based on resource name
             // general permission is : permission based on the role or permission based on user
-            boolean hasGeneralPermission = hasGeneralPermission(permission,action,userPermission);
+            boolean hasGeneralPermission = hasGeneralPermission(permission, action, userPermission);
             // entity permission is specific if it is found on role or user
-            boolean hasEntityPermission = hasEntityPermission(permissionSpecific,action,userPermissionSpecific);
+            boolean hasEntityPermission = hasEntityPermission(permissionSpecific, action, userPermissionSpecific);
 
             boolean existPermissionSpecificToEntity = permissionIntegrationClient.permissionSpecificToEntityExists(entity.getResourceName(), entity.getId());
 
@@ -363,12 +363,12 @@ public class PermissionManagerDefault implements PermissionManager {
             boolean userSharesResource = checkUserSharesResource(user, entity);
             boolean hasImpersonationPermission = impersonateAction != null && permissionImpersonation != null && hasPermission(
                     permissionImpersonation.getActionIds(), impersonateAction.getActionId());
-            return calculatePermission(permissionSpecific,userPermissionSpecific,hasEntityPermission,hasGeneralPermission,userOwnsResource,userSharesResource,existPermissionSpecificToEntity,hasImpersonationPermission);
+            return calculatePermission(permissionSpecific, userPermissionSpecific, hasEntityPermission, hasGeneralPermission, userOwnsResource, userSharesResource, existPermissionSpecificToEntity, hasImpersonationPermission);
         }
         return false;
     }
 
-    private boolean calculatePermission(Permission permissionSpecific, Permission userPermissionSpecific,boolean hasEntityPermission,boolean hasGeneralPermission,boolean userOwnsResource,boolean userSharesResource,boolean existPermissionSpecificToEntity,boolean hasImpersonationPermission){
+    private boolean calculatePermission(Permission permissionSpecific, Permission userPermissionSpecific, boolean hasEntityPermission, boolean hasGeneralPermission, boolean userOwnsResource, boolean userSharesResource, boolean existPermissionSpecificToEntity, boolean hasImpersonationPermission) {
         // The value is true only if the entity permission exists and contains the
         // actionId, or if
         // the entity permission doesn't exists then the rule follow the
@@ -381,12 +381,12 @@ public class PermissionManagerDefault implements PermissionManager {
                 hasImpersonationPermission);
     }
 
-    private boolean hasGeneralPermission(Permission permission,Action action, Permission userPermission){
+    private boolean hasGeneralPermission(Permission permission, Action action, Permission userPermission) {
         return (permission != null
                 && hasPermission(permission.getActionIds(), action.getActionId())) || (userPermission != null && hasPermission(userPermission.getActionIds(), action.getActionId()));
     }
 
-    private boolean hasEntityPermission(Permission permissionSpecific,Action action,Permission userPermissionSpecific){
+    private boolean hasEntityPermission(Permission permissionSpecific, Action action, Permission userPermissionSpecific) {
         return (permissionSpecific != null
                 && hasPermission(permissionSpecific.getActionIds(), action.getActionId())) || (userPermissionSpecific != null
                 && hasPermission(userPermissionSpecific.getActionIds(), action.getActionId()));
