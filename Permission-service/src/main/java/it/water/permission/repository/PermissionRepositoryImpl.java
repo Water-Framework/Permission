@@ -11,10 +11,7 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -39,7 +36,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      */
     @Override
     public WaterPermission findByUserAndResource(long userId, Resource resource) {
-        log.debug("invoking findByRoleAndResource User: {} Resource: {}", new Object[]{userId, resource.getResourceName()});
+        log.debug("invoking findByRoleAndResource User: {} Resource: {}", userId, resource.getResourceName());
         return this.findByUserAndResourceName(userId, resource.getResourceName());
     }
 
@@ -52,7 +49,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      */
     @Override
     public WaterPermission findByUserAndResourceName(long userId, String entityResourceName) {
-        log.debug("invoking findByUserAndResourceName User: {} Resource: {}", new Object[]{userId, entityResourceName});
+        log.debug("invoking findByUserAndResourceName User: {} Resource: {}", userId, entityResourceName);
         return tx(jakarta.transaction.Transactional.TxType.REQUIRED, entityManager -> {
             WaterPermission p = null;
             try {
@@ -70,7 +67,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     /**
      * Find a permission by a specific user, resource name and resource id via query
      *
-     * @param userId               user parameter
+     * @param userId             user parameter
      * @param entityResourceName parameter required to find a resource name
      * @param id                 parameter required to find a resource id
      * @return Permission if found
@@ -78,14 +75,14 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     @Override
     public WaterPermission findByUserAndResourceNameAndResourceId(long userId,
                                                                   String entityResourceName, long id) {
-        log.debug("invoking findByUserAndResourceNameAndResourceId User: {}", new Object[]{userId, entityResourceName, id});
-        return tx(Transactional.TxType.REQUIRED, entityManager -> {
-            return entityManager.createQuery(
-                            "from WaterPermission p where p.userId = :userId and roleId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id",
-                            WaterPermission.class).setParameter("userId", userId)
-                    .setParameter("entityResourceName", entityResourceName).setParameter("id", id)
-                    .getSingleResult();
-        });
+        log.debug("invoking findByUserAndResourceNameAndResourceId User: {}", userId);
+        return tx(Transactional.TxType.REQUIRED, entityManager ->
+                entityManager.createQuery(
+                                "from WaterPermission p where p.userId = :userId and roleId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id",
+                                WaterPermission.class).setParameter("userId", userId)
+                        .setParameter("entityResourceName", entityResourceName).setParameter("id", id)
+                        .getSingleResult()
+        );
     }
 
     /**
@@ -97,7 +94,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      */
     @Override
     public WaterPermission findByRoleAndResource(long roleId, Resource resource) {
-        log.debug("invoking findByRoleAndResource Role: {} Resource: {}", new Object[]{roleId, resource.getResourceName()});
+        log.debug("invoking findByRoleAndResource Role: {} Resource: {}", roleId, resource.getResourceName());
         return this.findByRoleAndResourceName(roleId, resource.getResourceName());
     }
 
@@ -110,7 +107,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      */
     @Override
     public WaterPermission findByRoleAndResourceName(long roleId, String entityResourceName) {
-        log.debug("invoking findByRoleAndResourceName Role: {} Resource: {}", new Object[]{roleId, entityResourceName});
+        log.debug("invoking findByRoleAndResourceName Role: {} Resource: {}", roleId, entityResourceName);
         return tx(Transactional.TxType.REQUIRED, entityManager -> {
             WaterPermission p = null;
             try {
@@ -134,19 +131,19 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     @Override
     public Collection<WaterPermission> findByRole(long roleId) {
         log.debug("invoking findByRoleAndResourceName Role: {}", roleId);
-        return tx(Transactional.TxType.REQUIRED, entityManager -> {
-            return entityManager
-                    .createQuery("from WaterPermission p where p.roleId = :roleId and userId = 0",
-                            WaterPermission.class)
-                    .setParameter("roleId", roleId).getResultList();
-        });
+        return tx(Transactional.TxType.REQUIRED, entityManager ->
+                entityManager
+                        .createQuery("from WaterPermission p where p.roleId = :roleId and userId = 0",
+                                WaterPermission.class)
+                        .setParameter("roleId", roleId).getResultList()
+        );
     }
 
 
     /**
      * Find a permission by a specific role, resource name and resource id via query
      *
-     * @param roleId               parameter required to find role by roleId
+     * @param roleId             parameter required to find role by roleId
      * @param entityResourceName parameter required to find a resource name
      * @param id                 parameter required to find a resource id
      * @return Permission if found
@@ -154,14 +151,8 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     @Override
     public WaterPermission findByRoleAndResourceNameAndResourceId(long roleId,
                                                                   String entityResourceName, long id) {
-        log.debug("invoking findByRoleAndResourceNameAndResourceId Role: {}", new Object[]{roleId, entityResourceName, id});
-        return tx(Transactional.TxType.REQUIRED, entityManager -> {
-            return entityManager.createQuery(
-                            "from WaterPermission p where p.roleId = :roleId and userId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id",
-                            WaterPermission.class).setParameter("roleId", roleId)
-                    .setParameter("entityResourceName", entityResourceName).setParameter("id", id)
-                    .getSingleResult();
-        });
+        log.debug("invoking findByRoleAndResourceNameAndResourceId Role: {}", roleId);
+        return tx(Transactional.TxType.REQUIRED, entityManager -> entityManager.createQuery("from WaterPermission p where p.roleId = :roleId and userId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id", WaterPermission.class).setParameter("roleId", roleId).setParameter("entityResourceName", entityResourceName).setParameter("id", id).getSingleResult());
     }
 
     /**
@@ -175,12 +166,12 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
 
             //calculating pairs resourceName - actionsIds
             for (int i = 0; i < actions.size(); i++) {
-                ResourceAction action = actions.get(i);
+                ResourceAction<?> action = actions.get(i);
                 String resourceClassName = action.getResourceClass().getName();
                 //Checks if permission already exists for that resource
                 WaterPermission p = this.findByRoleAndResourceName(roleId, action.getResourceClass().getName());
                 if (p == null)
-                    log.debug("No permission found for resource: {} and role {}", new Object[]{resourceClassName, roleId});
+                    log.debug("No permission found for resource: {} and role {}", resourceClassName, roleId);
                 else
                     existingPermissions.put(resourceClassName, p);
 
@@ -206,11 +197,11 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
 
             //calculating pairs resourceName - actionsIds
             for (int i = 0; i < actions.size(); i++) {
-                ResourceAction resAction = actions.get(i);
+                ResourceAction<?> resAction = actions.get(i);
                 //Checks if permission already exists for that resource
                 WaterPermission p = this.findByRoleAndResourceNameAndResourceIdInTransaction(roleId, resAction.getResourceClass().getName(), entityId);
                 if (p == null)
-                    log.debug("No permission found for resource: {} with id {} and role {}", new Object[]{resAction.getResourceClass().getName(), entityId, roleId});
+                    log.debug("No permission found for resource: {} with id {} and role {}", resAction.getResourceClass().getName(), entityId, roleId);
                 else
                     existingPermissions.put(resAction.getResourceClass().getName(), p);
 
@@ -248,7 +239,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     public WaterPermission findByRoleAndResourceNameAndResourceIdInTransaction(long roleId,
                                                                                String entityResourceName, long id) {
         log.debug("invoking findByRoleAndResourceNameAndResourceIdInTransaction Role: {}," +
-                "entityResourceName {} , entityId {}", new Object[]{roleId, entityResourceName, id});
+                "entityResourceName {} , entityId {}", roleId, entityResourceName, id);
         return tx(Transactional.TxType.REQUIRED, entityManager -> {
             WaterPermission p = null;
             try {
@@ -269,7 +260,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      * This method is used only for internal execution.
      * This method isn't part of the OSGI service interface
      */
-    public void checkOrCreatePermission(HashMap<String, Long> actionsIds, HashMap<String, WaterPermission> existingPermissions, long roleId, long entityId) {
+    public void checkOrCreatePermission(Map<String, Long> actionsIds, Map<String, WaterPermission> existingPermissions, long roleId, long entityId) {
         txExpr(Transactional.TxType.REQUIRED, entityManager -> {
             // Save only modified permissions
             Iterator<String> it = actionsIds.keySet().iterator();
@@ -298,9 +289,9 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                     // save or update
                     try {
                         if (!mustUpdate)
-                            entityManager.persist(p);
+                            this.persist(p);
                         else
-                            entityManager.merge(p);
+                            this.update(p);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                     }

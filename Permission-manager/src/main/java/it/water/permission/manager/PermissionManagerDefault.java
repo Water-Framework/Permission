@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-@FrameworkComponent(properties = {PermissionManagerComponentProperties.PERMISSION_MANAGER_IMPLEMENTATION_PROP+"="+PermissionManagerComponentProperties.PERMISSION_MANAGER_DEFAILT_IMPLEMENTATION})
+@FrameworkComponent(properties = {PermissionManagerComponentProperties.PERMISSION_MANAGER_IMPLEMENTATION_PROP + "=" + PermissionManagerComponentProperties.PERMISSION_MANAGER_DEFAILT_IMPLEMENTATION})
 public class PermissionManagerDefault implements PermissionManager {
     private Logger log = LoggerFactory.getLogger(PermissionManagerDefault.class.getName());
 
@@ -103,11 +103,13 @@ public class PermissionManagerDefault implements PermissionManager {
     @Override
     public boolean checkPermission(String username, Resource entity,
                                    Action action) {
-        if (!PermissionManager.isProtectedEntity(entity.getResourceName()))
-            return true;
         log.debug(
-                "invoking checkPermission User {} Entity Resource Name: {}", new Object[]{username, entity.getResourceName(), action.getActionName(), action.getActionId()});
-        if (!PermissionManager.isProtectedEntity(entity))
+                "invoking checkPermission User {} Entity Resource Name: {}", username, entity);
+
+        if (entity != null && !PermissionManager.isProtectedEntity(entity.getResourceName()))
+            return true;
+
+        if (entity != null && !PermissionManager.isProtectedEntity(entity))
             return true;
 
         if (username == null || entity == null || action == null)
@@ -132,10 +134,11 @@ public class PermissionManagerDefault implements PermissionManager {
     public boolean checkPermission(String username, String resourceName, Action action) {
         if (!PermissionManager.isProtectedEntity(resourceName))
             return true;
-        log.debug(
-                "invoking checkPermission User {} Entity Resource Name: {} Action Name: {}  actionId: {}", new Object[]{username, resourceName, action.getActionName(), action.getActionId()});
+
         if (username == null || resourceName == null || action == null)
             return false;
+
+        log.debug("invoking checkPermission User {} Entity Resource Name: {} Action Name: {}  actionId: {}", username, resourceName, action.getActionName(), action.getActionId());
 
         if (!PermissionManager.isProtectedEntity(resourceName))
             return true;
@@ -153,13 +156,14 @@ public class PermissionManagerDefault implements PermissionManager {
     @Override
     public boolean checkPermission(String username, Class<? extends Resource> resource,
                                    Action action) {
-        if (!PermissionManager.isProtectedEntity(resource.getName()))
+        if (resource != null && !PermissionManager.isProtectedEntity(resource.getName()))
             return true;
-        log.debug(
-                "invoking checkPermission User {} Entity Resource Name: {} Action Name: {}  actionId: {}", new Object[]{username, resource.getName(), action.getActionName(), action.getActionId()});
+
         if (username == null || resource == null || action == null)
             return false;
 
+        log.debug(
+                "invoking checkPermission User {} Entity Resource Name: {} Action Name: {}  actionId: {}", username, resource.getName(), action.getActionName(), action.getActionId());
         return hasPermission(username, resource.getName(), action);
     }
 
@@ -215,7 +219,7 @@ public class PermissionManagerDefault implements PermissionManager {
         if (hasPermission && entities != null) {
             User user = this.userIntegrationClient.fetchUserByUsername(username);
             for (int i = 0; i < entities.length && hasPermission; i++) {
-                hasPermission = hasPermission && user != null && entities[i] != null && checkUserOwnsResource(user, entities[i]);
+                hasPermission = user != null && entities[i] != null && checkUserOwnsResource(user, entities[i]);
             }
         }
         return hasPermission;
@@ -238,7 +242,7 @@ public class PermissionManagerDefault implements PermissionManager {
         if (hasPermission && entities != null) {
             User user = this.userIntegrationClient.fetchUserByUsername(username);
             for (int i = 0; i < entities.length && hasPermission; i++) {
-                hasPermission = hasPermission && user != null && entities[i] != null && checkUserOwnsResource(user, entities[i]);
+                hasPermission = user != null && entities[i] != null && checkUserOwnsResource(user, entities[i]);
             }
         }
         return hasPermission;
@@ -306,74 +310,86 @@ public class PermissionManagerDefault implements PermissionManager {
 
             try {
                 permission = permissionIntegrationClient.findByRoleAndResourceName(r.getId(), entity.getResourceName());
-            } catch (NoResultException e) {
+            } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.warn("No permission found for: {}  on resource {}"
-                        , new Object[]{r.getName(), entity.getResourceName()});
+                        , r.getName(), entity.getResourceName());
             }
 
             Permission userPermission = null;
             try {
                 userPermission = permissionIntegrationClient.findByUserAndResourceName(user.getId(), entity.getResourceName());
-            } catch (NoResultException e) {
+            } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.warn("No permission found for: {}  on resource {}"
-                        , new Object[]{user.getUsername(), entity.getResourceName()});
+                        , user.getUsername(), entity.getResourceName());
             }
 
             Permission permissionSpecific = null;
             try {
                 permissionSpecific = permissionIntegrationClient.findByRoleAndResourceNameAndResourceId(r.getId(),
                         entity.getResourceName(), entity.getId());
-            } catch (NoResultException e) {
+            } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.warn("No specific permission found for: {}  on resource {}"
-                        , new Object[]{r.getName(), entity.getResourceName()});
+                        , r.getName(), entity.getResourceName());
             }
 
             Permission userPermissionSpecific = null;
             try {
                 userPermissionSpecific = permissionIntegrationClient.findByUserAndResourceNameAndResourceId(user.getId(),
                         entity.getResourceName(), entity.getId());
-            } catch (NoResultException e) {
+            } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.warn("No specific permission found for: {}  on resource {}"
-                        , new Object[]{user.getUsername(), entity.getResourceName()});
+                        , user.getUsername(), entity.getResourceName());
             }
 
             Permission permissionImpersonation = null;
             try {
                 permissionImpersonation = permissionIntegrationClient.findByRoleAndResourceName(r.getId(),
                         User.class.getName());
-            } catch (NoResultException e) {
+            } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.warn("No impersonification permission found for: {}  on resource {}"
-                        , new Object[]{r.getName(), entity.getResourceName()});
+                        , r.getName(), entity.getResourceName());
             }
             // it initialize the value with the general value based on resource name
             // general permission is : permission based on the role or permission based on user
-            boolean hasGeneralPermission = (permission != null
-                    && hasPermission(permission.getActionIds(), action.getActionId())) || (userPermission != null && hasPermission(userPermission.getActionIds(), action.getActionId()));
+            boolean hasGeneralPermission = hasGeneralPermission(permission,action,userPermission);
             // entity permission is specific if it is found on role or user
-            boolean hasEntityPermission = (permissionSpecific != null
-                    && hasPermission(permissionSpecific.getActionIds(), action.getActionId())) || (userPermissionSpecific != null
-                    && hasPermission(userPermissionSpecific.getActionIds(), action.getActionId()));
+            boolean hasEntityPermission = hasEntityPermission(permissionSpecific,action,userPermissionSpecific);
 
             boolean existPermissionSpecificToEntity = permissionIntegrationClient.permissionSpecificToEntityExists(entity.getResourceName(), entity.getId());
 
-            Action impersonateAction = actionsManager.getActions().get(User.class.getName()).getAction(UserActions.IMPERSONATE);
+            boolean userActionsAreRegistered = actionsManager.getActions().get(User.class.getName()) != null;
+            Action impersonateAction = (userActionsAreRegistered) ? actionsManager.getActions().get(User.class.getName()).getAction(UserActions.IMPERSONATE) : null;
             boolean userOwnsResource = checkUserOwnsResource(user, entity);
             boolean userSharesResource = checkUserSharesResource(user, entity);
-            boolean hasImpersonationPermission = permissionImpersonation != null && hasPermission(
+            boolean hasImpersonationPermission = impersonateAction != null && permissionImpersonation != null && hasPermission(
                     permissionImpersonation.getActionIds(), impersonateAction.getActionId());
-            // The value is true only if the entity permission exists and contains the
-            // actionId, or if
-            // the entity permission doesn't exists then the rule follow the
-            // generalPermission
-            // AND if the resource is an owned resource is accessed by the right user or the
-            // accessing user has the impersonation permission
-            if ((((permissionSpecific != null || userPermissionSpecific != null) && hasEntityPermission) || (permissionSpecific == null && userPermissionSpecific == null && hasGeneralPermission))
-                    && (userOwnsResource ||
-                    ((userSharesResource && !existPermissionSpecificToEntity && hasGeneralPermission) || (userSharesResource && (permissionSpecific != null || userPermissionSpecific != null) && hasEntityPermission)) ||
-                    hasImpersonationPermission))
-                return true;
+            return calculatePermission(permissionSpecific,userPermissionSpecific,hasEntityPermission,hasGeneralPermission,userOwnsResource,userSharesResource,existPermissionSpecificToEntity,hasImpersonationPermission);
         }
         return false;
+    }
+
+    private boolean calculatePermission(Permission permissionSpecific, Permission userPermissionSpecific,boolean hasEntityPermission,boolean hasGeneralPermission,boolean userOwnsResource,boolean userSharesResource,boolean existPermissionSpecificToEntity,boolean hasImpersonationPermission){
+        // The value is true only if the entity permission exists and contains the
+        // actionId, or if
+        // the entity permission doesn't exists then the rule follow the
+        // generalPermission
+        // AND if the resource is an owned resource is accessed by the right user or the
+        // accessing user has the impersonation permission
+        return (((permissionSpecific != null || userPermissionSpecific != null) && hasEntityPermission) || (permissionSpecific == null && userPermissionSpecific == null && hasGeneralPermission))
+                && (userOwnsResource ||
+                ((userSharesResource && !existPermissionSpecificToEntity && hasGeneralPermission) || (userSharesResource && (permissionSpecific != null || userPermissionSpecific != null) && hasEntityPermission)) ||
+                hasImpersonationPermission);
+    }
+
+    private boolean hasGeneralPermission(Permission permission,Action action, Permission userPermission){
+        return (permission != null
+                && hasPermission(permission.getActionIds(), action.getActionId())) || (userPermission != null && hasPermission(userPermission.getActionIds(), action.getActionId()));
+    }
+
+    private boolean hasEntityPermission(Permission permissionSpecific,Action action,Permission userPermissionSpecific){
+        return (permissionSpecific != null
+                && hasPermission(permissionSpecific.getActionIds(), action.getActionId())) || (userPermissionSpecific != null
+                && hasPermission(userPermissionSpecific.getActionIds(), action.getActionId()));
     }
 
     /**
@@ -388,7 +404,7 @@ public class PermissionManagerDefault implements PermissionManager {
         boolean hasPermission = (permissionActionIds & actionId) == actionId;
         log.debug(
                 "invoking hasPermission permissionActionIds & actionId == actionId {}",
-                new Object[]{permissionActionIds, actionId, hasPermission});
+                hasPermission);
         return hasPermission;
     }
 
@@ -410,15 +426,14 @@ public class PermissionManagerDefault implements PermissionManager {
         // looks up for a persisted entity in the hierarchy chain
         while (true) {
             // double check if the passed entity is consistent (must belong to `user`)
-            if (entity instanceof OwnedResource) {
-                resourceOwner = ((OwnedResource) entity).getUserOwner();
+            if (entity instanceof OwnedResource ownedResource) {
+                resourceOwner = ownedResource.getUserOwner();
                 if (!userSharesResource && resourceOwner != null && resourceOwner.getId() != 0
                         && user.getId() != resourceOwner.getId()) {
                     return false;
                 } else
                     break;
-            } else if (entity instanceof OwnedChildResource) {
-                OwnedChildResource child = (OwnedChildResource) entity;
+            } else if (entity instanceof OwnedChildResource child) {
                 if (child.getParent() != null)
                     entity = child.getParent();
                 else
@@ -432,11 +447,10 @@ public class PermissionManagerDefault implements PermissionManager {
             if (service != null) {
                 BaseEntity persistedEntity = service.find(entity.getId());
                 // verify the owner
-                if (persistedEntity instanceof OwnedResource) {
-                    resourceOwner = ((OwnedResource) persistedEntity).getUserOwner();
-                } else if (persistedEntity instanceof OwnedChildResource) {
-                    OwnedChildResource persistedChildEntity = (OwnedChildResource) persistedEntity;
-                    if (persistedChildEntity != null && persistedChildEntity.getParent() != null) {
+                if (persistedEntity instanceof OwnedResource ownedResource) {
+                    resourceOwner = ownedResource.getUserOwner();
+                } else if (persistedEntity instanceof OwnedChildResource persistedChildEntity) {
+                    if (persistedChildEntity.getParent() != null) {
                         // retry with the parent resource
                         return (persistedChildEntity.getParent() == null || checkUserOwnsResource(user, persistedChildEntity.getParent()))
                                 && checkUserOwnsResource(user, persistedChildEntity.getParent());
@@ -450,7 +464,7 @@ public class PermissionManagerDefault implements PermissionManager {
             return true;
         }
 
-        return (user != null && resourceOwner != null && (user.getId() == resourceOwner.getId() || userSharesResource));
+        return (resourceOwner != null && (user.getId() == resourceOwner.getId() || userSharesResource));
     }
 
     /**
@@ -470,15 +484,14 @@ public class PermissionManagerDefault implements PermissionManager {
         while (loop) {
             // double check if the passed entity is consistent (must be shared to `user`)
             if (entity instanceof SharedEntity) {
-                if(sharedEntityIntegrationClient == null)
+                if (sharedEntityIntegrationClient == null)
                     return false;
                 sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), entity.getId());
                 if (sharingUsers.stream().noneMatch(id -> id == user.getId())) {
                     return false;
                 } else
                     loop = false;
-            } else if (entity instanceof OwnedChildResource) {
-                OwnedChildResource child = (OwnedChildResource) entity;
+            } else if (entity instanceof OwnedChildResource child) {
                 if (child.getParent() != null)
                     entity = child.getParent();
                 else
@@ -493,14 +506,13 @@ public class PermissionManagerDefault implements PermissionManager {
                 BaseEntity persistedEntity = service.find(entity.getId());
                 // verify the owner
                 if (persistedEntity instanceof SharedEntity) {
-                    if(sharedEntityIntegrationClient == null){
+                    if (sharedEntityIntegrationClient == null) {
                         sharingUsers = Collections.emptyList();
                     } else {
                         sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), entity.getId());
                     }
-                } else if (persistedEntity instanceof OwnedChildResource) {
-                    OwnedChildResource persistedChildEntity = (OwnedChildResource) persistedEntity;
-                    if (persistedChildEntity != null && persistedChildEntity.getParent() != null) {
+                } else if (persistedEntity instanceof OwnedChildResource persistedChildEntity) {
+                    if (persistedChildEntity.getParent() != null) {
                         // retry with the parent resource
                         return (persistedChildEntity.getParent() == null || checkUserOwnsResource(user, persistedChildEntity.getParent()))
                                 && checkUserOwnsResource(user, persistedChildEntity.getParent());
@@ -513,7 +525,7 @@ public class PermissionManagerDefault implements PermissionManager {
         } else {
             return false;
         }
-        return (user != null && sharingUsers.stream().anyMatch(id -> id == user.getId()));
+        return (sharingUsers.stream().anyMatch(id -> id == user.getId()));
     }
 
     /**

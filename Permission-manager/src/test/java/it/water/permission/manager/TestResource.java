@@ -16,12 +16,13 @@
 
 package it.water.permission.manager;
 
+import it.water.core.api.entity.owned.OwnedResource;
+import it.water.core.api.model.User;
 import it.water.core.api.permission.ProtectedEntity;
 import it.water.core.permission.action.CrudActions;
 import it.water.core.permission.annotations.AccessControl;
 import it.water.core.permission.annotations.DefaultRoleAccess;
-import it.water.permission.actions.PermissionsActions;
-import it.water.permission.model.WaterPermission;
+import it.water.repository.entity.model.AbstractEntity;
 
 import java.util.Date;
 
@@ -31,15 +32,22 @@ import java.util.Date;
 @AccessControl(availableActions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL, CrudActions.REMOVE},
         rolesPermissions = {
                 //Admin role can do everything
-                @DefaultRoleAccess(roleName = WaterPermission.DEFAULT_MANAGER_ROLE, actions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL, CrudActions.REMOVE}),
+                @DefaultRoleAccess(roleName = TestResource.TEST_ROLE_MANAGER, actions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL, CrudActions.REMOVE}),
                 //Viwer has read only access
-                @DefaultRoleAccess(roleName = WaterPermission.DEFAULT_VIEWER_ROLE, actions = {CrudActions.FIND, CrudActions.FIND_ALL}),
+                @DefaultRoleAccess(roleName = TestResource.TEST_ROLE_VIEWER, actions = {CrudActions.FIND, CrudActions.FIND_ALL}),
                 //Editor can do anything but remove
-                @DefaultRoleAccess(roleName = WaterPermission.DEFAULT_EDITOR_ROLE, actions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL})
+                @DefaultRoleAccess(roleName = TestResource.TEST_ROLE_EDITOR, actions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL})
         })
-public class TestResource implements ProtectedEntity {
+public class TestResource implements ProtectedEntity, OwnedResource {
+
+    public static final String TEST_ROLE_MANAGER = "test_manager";
+    public static final String TEST_ROLE_VIEWER = "test_viewer";
+    public static final String TEST_ROLE_EDITOR = "test_editor";
+
     private long id;
     private Integer version;
+
+    private User owner;
 
     public void setId(long id) {
         this.id = id;
@@ -73,5 +81,15 @@ public class TestResource implements ProtectedEntity {
     @Override
     public String getResourceName() {
         return TestResource.class.getName();
+    }
+
+    @Override
+    public User getUserOwner() {
+        return owner;
+    }
+
+    @Override
+    public void setUserOwner(User user) {
+        this.owner = user;
     }
 }

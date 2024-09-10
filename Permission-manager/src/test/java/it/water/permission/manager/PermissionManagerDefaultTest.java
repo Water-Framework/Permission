@@ -1,5 +1,6 @@
 package it.water.permission.manager;
 
+import it.water.core.api.action.Action;
 import it.water.core.api.action.ActionList;
 import it.water.core.api.action.ActionsManager;
 import it.water.core.api.bundle.Runtime;
@@ -15,6 +16,8 @@ import it.water.core.api.service.Service;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.model.exceptions.ValidationException;
 import it.water.core.model.exceptions.WaterRuntimeException;
+import it.water.core.permission.action.ActionFactory;
+import it.water.core.permission.action.CrudActions;
 import it.water.core.permission.exceptions.UnauthorizedException;
 import it.water.core.testing.utils.api.TestPermissionManager;
 import it.water.core.testing.utils.api.TestUserManager;
@@ -26,6 +29,7 @@ import it.water.permission.api.PermissionSystemApi;
 import it.water.permission.model.WaterPermission;
 import it.water.repository.entity.model.exceptions.DuplicateEntityException;
 import lombok.Setter;
+import org.hsqldb.server.Server;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -43,7 +47,9 @@ import java.util.Map;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PermissionManagerDefaultTest implements Service {
-    
+    public static final String VIEWER_USERNAME = "viewer";
+    public static final String EDITOR_USERNAME = "editor";
+    public static final String MANAGER_USERNAME = "manager";
     @Inject
     @Setter
     private ComponentRegistry componentRegistry;
@@ -63,6 +69,10 @@ public class PermissionManagerDefaultTest implements Service {
 
     @Inject
     @Setter
+    private PermissionSystemApi permissionSystemApi;
+
+    @Inject
+    @Setter
     //test role manager
     private TestUserManager testUserManager;
 
@@ -74,24 +84,72 @@ public class PermissionManagerDefaultTest implements Service {
     private it.water.core.api.model.User adminUser;
     private User viewerUser;
     private User managerUser;
-    private User editoriUser;
+    private User editorUser;
     private Map<String, ActionList<Resource>> actionsMap;
     @BeforeAll
     public void beforeAll() {
         //impersonate admin so we can test the happy path
         adminUser = testUserManager.findUser("admin");
-        actionsManager.registerActions(TestResource.class);
+        viewerUser = testUserManager.addUser(VIEWER_USERNAME,VIEWER_USERNAME,VIEWER_USERNAME,"viewer@mail.com",false);
+        managerUser = testUserManager.addUser(MANAGER_USERNAME,MANAGER_USERNAME,MANAGER_USERNAME,"manager@mail.com",false);
+        editorUser = testUserManager.addUser(EDITOR_USERNAME,EDITOR_USERNAME,EDITOR_USERNAME,"editor@mail.com",false);
         actionsMap = actionsManager.getActions();
         Assertions.assertTrue(actionsMap.containsKey(TestResource.class.getName()));
         Assertions.assertEquals(5,actionsMap.get(TestResource.class.getName()).getList().size());
     }
+
     /**
      * Testing basic injection of basic component for permission entity.
      */
     @Test
     @Order(1)
-    public void testPermissionManagerIsOverriden() {
+    void testPermissionManagerIsOverriden() {
         Assertions.assertFalse(permissionManager instanceof TestPermissionManager);
+    }
+
+    @Test
+    @Order(2)
+    void testActionsRegisteredCorrectly(){
+        Assertions.assertTrue(actionsMap.containsKey(TestResource.class.getName()));
+        Assertions.assertEquals(5,actionsMap.get(TestResource.class.getName()).getList().size());
+    }
+
+    @Test
+    @Order(3)
+    void testAssignPermissions(){
+        TestRuntimeInitializer.getInstance().impersonate(adminUser,runtime);
+        roleManager.addRole(viewerUser.getId(),roleManager.getRole(TestResource.TEST_ROLE_VIEWER));
+        roleManager.addRole(managerUser.getId(),roleManager.getRole(TestResource.TEST_ROLE_MANAGER));
+        roleManager.addRole(editorUser.getId(),roleManager.getRole(TestResource.TEST_ROLE_EDITOR));
+        Assertions.assertTrue(permissionManager.userHasRoles(viewerUser.getUsername(),new String[]{TestResource.TEST_ROLE_VIEWER}));
+        Assertions.assertTrue(permissionManager.userHasRoles(managerUser.getUsername(),new String[]{TestResource.TEST_ROLE_MANAGER}));
+        Assertions.assertTrue(permissionManager.userHasRoles(editorUser.getUsername(),new String[]{TestResource.TEST_ROLE_EDITOR}));
+    }
+
+    @Test
+    @Order(4)
+    void testUserPermissions(){
+        TestRuntimeInitializer.getInstance().impersonate(adminUser,runtime);
+        TestResource testResource = new TestResource();
+        Assertions.assertTrue(permissionManager.userHasRoles(viewerUser.getUsername(),new String[]{TestResource.TEST_ROLE_VIEWER}));
+        ActionList<?> actions = actionsManager.getActions().get(TestResource.class.getName());
+        Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(),TestResource.class.getName(), actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(),TestResource.class.getName(), actions.getAction(CrudActions.REMOVE)));
+        Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(),testResource, actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(),testResource, actions.getAction(CrudActions.REMOVE)));
+    }
+
+    @Test
+    @Order(4)
+    void testCheckOwnership(){
+        TestRuntimeInitializer.getInstance().impersonate(adminUser,runtime);
+        TestResource testResource = new TestResource();
+        Assertions.assertTrue(permissionManager.userHasRoles(viewerUser.getUsername(),new String[]{TestResource.TEST_ROLE_VIEWER}));
+        ActionList<?> actions = actionsManager.getActions().get(TestResource.class.getName());
+        Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(),TestResource.class.getName(), actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(),TestResource.class.getName(), actions.getAction(CrudActions.REMOVE)));
+        Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(),testResource, actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(),testResource, actions.getAction(CrudActions.REMOVE)));
     }
     
     private WaterPermission createPermission(int seed,long roleId,long userId){

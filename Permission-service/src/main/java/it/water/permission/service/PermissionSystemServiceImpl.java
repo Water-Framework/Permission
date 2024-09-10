@@ -2,8 +2,6 @@ package it.water.permission.service;
 
 import it.water.core.api.action.ResourceAction;
 import it.water.core.api.model.Resource;
-import it.water.core.api.model.User;
-import it.water.core.api.permission.Role;
 import it.water.core.api.registry.filter.ComponentFilterBuilder;
 import it.water.core.interceptors.annotations.FrameworkComponent;
 import it.water.core.interceptors.annotations.Inject;
@@ -41,18 +39,18 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     /**
      * Find a permission by a specific user and resource
      *
-     * @param userId     user parameter
+     * @param userId   user parameter
      * @param resource parameter required to find a resource
      * @return Permission if found
      */
     public WaterPermission findByUserAndResource(long userId, Resource resource) {
         getLog().debug("invoking findByUserAndResource user: {} Resource: {}"
-                , new Object[]{userId, resource.getResourceName()});
+                , userId, resource.getResourceName());
         try {
             return repository.findByUserAndResource(userId, resource);
         } catch (NoResultException e) {
             getLog().debug("No result searching for permission for user: {} Resource: {}"
-                    , new Object[]{userId, resource.getResourceName()});
+                    , userId, resource.getResourceName());
             return null;
         }
     }
@@ -60,18 +58,17 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     /**
      * Find a permission by a specific user and resource name
      *
-     * @param userId         parameter required to find role by roleId
+     * @param userId       parameter required to find role by roleId
      * @param resourceName parameter required to find a resource name
      * @return Permission if found
      */
     public WaterPermission findByUserAndResourceName(long userId, String resourceName) {
         getLog().debug("invoking findByUserAndResourceName user: {} Resource: {}"
-                , new Object[]{userId, resourceName});
+                , userId, resourceName);
         try {
             return repository.findByUserAndResourceName(userId, resourceName);
         } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for user " + userId
-                    + " Resource: " + resourceName);
+            getLog().debug("No result searching for permission for user {} Resource: {}", userId, resourceName);
             return null;
         }
     }
@@ -79,7 +76,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     /**
      * Find a permission by a specific user, resource name and resource id
      *
-     * @param userId         user parameter
+     * @param userId       user parameter
      * @param resourceName parameter required to find a resource name
      * @param id           parameter required to find a resource id
      * @return Permission if found
@@ -87,12 +84,11 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     public WaterPermission findByUserAndResourceNameAndResourceId(long userId, String resourceName,
                                                                   long id) {
         getLog().debug("invoking findByRoleAndResourceNameAndResourceId user: {} Resource: {}"
-                , new Object[]{userId, resourceName});
+                , userId, resourceName);
         try {
             return repository.findByUserAndResourceNameAndResourceId(userId, resourceName, id);
         } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for user " + userId
-                    + " Resource: " + resourceName + " with id: " + id);
+            getLog().debug("No result searching for permission for user {} Resource: {} with id: {}", userId, resourceName, id);
             return null;
         }
     }
@@ -100,18 +96,18 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     /**
      * Find a permission by a specific role and resource
      *
-     * @param roleId     parameter required to find role by roleId
+     * @param roleId   parameter required to find role by roleId
      * @param resource parameter required to find a resource
      * @return Permission if found
      */
     public WaterPermission findByRoleAndResource(long roleId, Resource resource) {
         getLog().debug("invoking findByRoleAndResource role: {} Resource: {}"
-                , new Object[]{roleId, resource.getResourceName()});
+                , roleId, resource.getResourceName());
         try {
             return repository.findByRoleAndResource(roleId, resource);
         } catch (NoResultException e) {
             getLog().debug("No result searching for permission for role: {} Resource: {}"
-                    , new Object[]{roleId, resource.getResourceName()});
+                    , roleId, resource.getResourceName());
             return null;
         }
     }
@@ -119,18 +115,17 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     /**
      * Find a permission by a specific role and resource name
      *
-     * @param roleId         parameter required to find role by roleId
+     * @param roleId       parameter required to find role by roleId
      * @param resourceName parameter required to find a resource name
      * @return Permission if found
      */
     public WaterPermission findByRoleAndResourceName(long roleId, String resourceName) {
         getLog().debug("invoking findByRoleAndResourceName role: {} Resource: {}"
-                , new Object[]{roleId, resourceName});
+                , roleId, resourceName);
         try {
             return repository.findByRoleAndResourceName(roleId, resourceName);
         } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for role " + roleId
-                    + " Resource: " + resourceName);
+            getLog().debug("No result searching for permission for role {} Resource: {}", roleId, resourceName);
             return null;
         }
     }
@@ -138,7 +133,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     /**
      * Find a permission by a specific role, resource name and resource id
      *
-     * @param roleId         parameter required to find role by roleId
+     * @param roleId       parameter required to find role by roleId
      * @param resourceName parameter required to find a resource name
      * @param id           parameter required to find a resource id
      * @return Permission if found
@@ -146,12 +141,11 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     public WaterPermission findByRoleAndResourceNameAndResourceId(long roleId, String resourceName,
                                                                   long id) {
         getLog().debug("invoking findByRoleAndResourceNameAndResourceId role: {} Resource: {}"
-                , new Object[]{roleId, resourceName});
+                , roleId, resourceName);
         try {
             return repository.findByRoleAndResourceNameAndResourceId(roleId, resourceName, id);
         } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for role " + roleId
-                    + " Resource: " + resourceName + " with id: " + id);
+            getLog().debug("No result searching for permission for role {} Resource: {}} with id: {}", roleId, resourceName, id);
             return null;
         }
     }
