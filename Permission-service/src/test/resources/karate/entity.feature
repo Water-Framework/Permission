@@ -7,9 +7,20 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/waterpermissions'
+    Given url 'http://localhost:8080/water/permissions'
     # ---- Add entity fields here -----
-    And request { "exampleField": "exampleField"}
+    And request
+    """
+      { "id": 0,
+        "entityVersion":1,
+        "name": 'name',
+        "actionIds": 1,
+        "entityResourceName":"prova",
+        "resourceId":21,
+        "roleId":2,
+        "userId":0
+       }
+    """
     # ---------------------------------
     When method POST
     Then status 200
@@ -20,7 +31,12 @@ Feature: Check Permission Rest Api Response
         "entityVersion":1,
         "entityCreateDate":'#number',
         "entityModifyDate":'#number',
-        "exampleField": 'exampleField'
+        "name": 'name',
+        "actionIds": 1,
+        "entityResourceName":"prova",
+        "resourceId":21,
+        "roleId":2,
+        "userId":0
        }
     """
     * def entityId = response.id
@@ -29,9 +45,20 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/waterpermissions'
+    Given url 'http://localhost:8080/water/permissions'
     # ---- Add entity fields here -----
-    And request { "id":"#(entityId)","entityVersion":1,"exampleField": "exampleFieldUpdated"}
+    And request
+      """
+      { "id": #(entityId),
+        "entityVersion":1,
+        "name": 'updateName',
+        "actionIds": 1,
+        "entityResourceName":"prova",
+        "resourceId":21,
+        "roleId":2,
+        "userId":0
+       }
+      """
     # ---------------------------------
     When method PUT
     Then status 200
@@ -42,7 +69,12 @@ Feature: Check Permission Rest Api Response
         "entityVersion":2,
         "entityCreateDate":'#number',
         "entityModifyDate":'#number',
-        "exampleField": 'exampleFieldUpdated'
+        "name": 'updateName',
+        "actionIds": 1,
+        "entityResourceName":"prova",
+        "resourceId":21,
+        "roleId":2,
+        "userId":0
        }
     """
   
@@ -50,7 +82,7 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/waterpermissions/'+entityId
+    Given url 'http://localhost:8080/water/permissions/'+entityId
     # ---------------------------------
     When method GET
     Then status 200
@@ -61,7 +93,12 @@ Feature: Check Permission Rest Api Response
         "entityVersion":2,
         "entityCreateDate":'#number',
         "entityModifyDate":'#number',
-        "exampleField": 'exampleFieldUpdated'
+        "name": 'updateName',
+        "actionIds": 1,
+        "entityResourceName":"prova",
+        "resourceId":21,
+        "roleId":2,
+        "userId":0
        }
     """
     
@@ -69,7 +106,7 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/waterpermissions'
+    Given url 'http://localhost:8080/water/permissions'
     When method GET
     Then status 200
     And match response ==
@@ -85,7 +122,12 @@ Feature: Check Permission Rest Api Response
             "entityVersion":2,
             "entityCreateDate":'#number',
             "entityModifyDate":'#number',
-            "exampleField": 'exampleFieldUpdated'
+            "name": 'updateName',
+            "actionIds": 1,
+            "entityResourceName":"prova",
+            "resourceId":21,
+            "roleId":2,
+            "userId":0
           }
         ]
       }
@@ -95,7 +137,7 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/waterpermissions/'+entityId
+    Given url 'http://localhost:8080/water/permissions/'+entityId
     When method DELETE
     # 204 because delete response is empty, so the status code is "no content" but is ok
     Then status 204
