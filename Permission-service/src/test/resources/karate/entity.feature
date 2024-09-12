@@ -11,7 +11,7 @@ Feature: Check Permission Rest Api Response
     # ---- Add entity fields here -----
     And request
     """
-      { "id": 0,
+      {
         "entityVersion":1,
         "name": 'name',
         "actionIds": 1,

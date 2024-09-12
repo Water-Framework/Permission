@@ -273,11 +273,11 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                 String permissionName = resourceName + " Permissions";
                 if (!existingPermissions.containsKey(resourceName)) {
                     // permission is new
-                    p = new WaterPermission(permissionName, actionIds, resourceName, entityId, roleId, 0);
+                    p = new WaterPermission(permissionName, actionIds, resourceName, entityId, roleId, 0l);
                 } else if (existingPermissions.get(resourceName).getActionIds() != actionIds) {
                     // permission has been modified (i.e. actions have been added or removed)
                     p = existingPermissions.get(resourceName);
-                    WaterPermission pUpdated = new WaterPermission(permissionName, actionIds, resourceName, entityId, roleId, 0);
+                    WaterPermission pUpdated = new WaterPermission(permissionName, actionIds, resourceName, entityId, roleId, 0l);
                     pUpdated.setId(p.getId());
                     mustUpdate = true;
                 } else {

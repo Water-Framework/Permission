@@ -37,6 +37,7 @@ import it.water.core.interceptors.annotations.Inject;
 import it.water.core.permission.action.ActionFactory;
 import it.water.core.permission.action.UserActions;
 import it.water.repository.entity.model.exceptions.NoResultException;
+import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,10 @@ import java.util.*;
 public class PermissionManagerDefault implements PermissionManager {
     private Logger log = LoggerFactory.getLogger(PermissionManagerDefault.class.getName());
 
+    //supporting spring properties bind with bean properties
+    @Setter
+    @Getter
+    private String implementation = PermissionManagerComponentProperties.PERMISSION_MANAGER_DEFAILT_IMPLEMENTATION;
     /**
      * Injecting the PermissionSystemService to use methods in PermissionSystemApi
      * interface

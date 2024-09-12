@@ -34,25 +34,28 @@ import java.util.Map;
  * Interface exposing same methods of its parent PermissionRestApi but adding Spring annotations.
  * Swagger annotation should be found because they have been defined in the parent PermissionRestApi.
  */
-@RequestMapping("/permission")
+@RequestMapping("/permissions")
 @FrameworkRestApi
 public interface PermissionSpringRestApi extends PermissionRestApi {
     @PostMapping
     @JsonView(WaterJsonView.Public.class)
-    WaterPermission save(WaterPermission permission);
+    WaterPermission save(@RequestBody WaterPermission permission);
 
     @PutMapping
     @JsonView(WaterJsonView.Public.class)
-    WaterPermission update(WaterPermission permission);
+    WaterPermission update(@RequestBody WaterPermission permission);
 
     @GetMapping("/{id}")
+    @JsonView(WaterJsonView.Public.class)
     WaterPermission find(@PathVariable("id") long id);
 
     @GetMapping
+    @JsonView(WaterJsonView.Public.class)
     PaginableResult<WaterPermission> findAll();
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @JsonView(WaterJsonView.Public.class)
     void remove(@PathVariable("id") long id);
 
     /**
@@ -77,6 +80,8 @@ public interface PermissionSpringRestApi extends PermissionRestApi {
      * @param entityPks
      * @return
      */
+    @LoggedIn
     @PostMapping("/map")
-    Map<String, Map<String, Map<String, Boolean>>> elaboratePermissionMap(Map<String, List<Long>> entityPks);
+    @JsonView(WaterJsonView.Compact.class)
+    Map<String, Map<String, Map<String, Boolean>>> elaboratePermissionMap(@RequestBody Map<String, List<Long>> entityPks);
 }

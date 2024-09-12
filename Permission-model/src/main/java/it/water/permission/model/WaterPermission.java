@@ -12,10 +12,7 @@ import it.water.core.validation.annotations.NotNullOnPersist;
 import it.water.permission.actions.PermissionsActions;
 import it.water.repository.jpa.model.AbstractJpaEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 
@@ -53,17 +50,19 @@ public class WaterPermission extends AbstractJpaEntity implements Permission,Pro
     /**
      * String name for Permission
      */
-    @JsonView({WaterJsonView.Compact.class})
+    @JsonView(WaterJsonView.Extended.class)
     @Column
     @NotBlank
     @NoMalitiusCode
     @Size(max = 255)
     @NonNull
+    @NotNull
+    @NotNullOnPersist
     private String name;
     /**
      * int actionIds for Permission
      */
-    @JsonView({WaterJsonView.Compact.class})
+    @JsonView(WaterJsonView.Extended.class)
     @Column
     @Positive
     @NonNull
@@ -72,18 +71,19 @@ public class WaterPermission extends AbstractJpaEntity implements Permission,Pro
     /**
      * String entityResourceName for Permission
      */
-    @JsonView({WaterJsonView.Compact.class})
+    @JsonView(WaterJsonView.Extended.class)
     @Column
     @NotNullOnPersist
     @NotEmpty
     @Size(max = 255)
     @NoMalitiusCode
     @NonNull
+    @NotNull
     private String entityResourceName;
     /**
      * long resourceId for Permission
      */
-    @JsonView({WaterJsonView.Compact.class})
+    @JsonView(WaterJsonView.Extended.class)
     @Column
     @NonNull
     private Long resourceId;
@@ -91,14 +91,14 @@ public class WaterPermission extends AbstractJpaEntity implements Permission,Pro
     /**
      * Role role for Permission
      */
-    @JsonView({WaterJsonView.Compact.class})
+    @JsonView(WaterJsonView.Extended.class)
     @NonNull
     private long roleId;
 
     /**
      * Permissions can be related to roles or directly to users
      */
-    @JsonView({WaterJsonView.Compact.class})
+    @JsonView(WaterJsonView.Extended.class)
     @NonNull
     private long userId;
 
