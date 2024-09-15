@@ -8,7 +8,8 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest(classes = PermissionApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestPropertySource(properties = {
-        "water.rest.security.jwt.validate=false"
+        "water.rest.security.jwt.validate=false",
+        "water.testMode=true"
 })
 public class PermissionRestSpringApiTest {
 
