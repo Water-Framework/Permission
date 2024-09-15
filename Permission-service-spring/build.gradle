@@ -34,20 +34,17 @@ dependencies {
 
 	testImplementation group:'it.water.core',name:'Core-testing-utils',version:project.waterVersion
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:' + project.springBootVersion
+	testImplementation 'org.springframework.boot:spring-boot-starter-web:' + project.springBootVersion
 	testAnnotationProcessor 'org.projectlombok:lombok:'+project.lombokVersion
 	testImplementation 'org.mockito:mockito-core:4.6.1'
 	testImplementation 'org.mockito:mockito-junit-jupiter:4.6.1'
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:' + project.junitJupiterVersion
-	testImplementation 'org.junit.jupiter:junit-jupiter-engine:' + project.junitJupiterVersion
 	testImplementation 'org.atteo.classindex:classindex:' + project.atteoClassIndexVersion
 
 	testImplementation group: 'org.reflections', name: 'reflections', version: '0.10.2'
 	testImplementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
 	// https://mvnrepository.com/artifact/com.intuit.karate/karate-junit5
-	testImplementation ('com.intuit.karate:karate-junit5:1.4.1') {
-		exclude group : "ch.qos.logback"
-	}
+	testImplementation ('io.karatelabs:karate-junit5:'+project.karateVersion)
 }
 
 test {
