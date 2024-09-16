@@ -1,0 +1,11 @@
+meta {
+  name: Find All Permissions
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{address}}/{{contextRoot}}/permissions
+  body: json
+  auth: none
+}
