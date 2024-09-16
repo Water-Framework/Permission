@@ -2,8 +2,6 @@ package it.water.permission.api;
 
 import it.water.core.api.action.ResourceAction;
 import it.water.core.api.model.Resource;
-import it.water.core.api.model.User;
-import it.water.core.api.permission.Role;
 import it.water.core.api.service.BaseEntitySystemApi;
 import it.water.permission.model.WaterPermission;
 
@@ -19,7 +17,7 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
     /**
      * Find a permission by a specific user and resource
      *
-     * @param userId     user parameter
+     * @param userId   user parameter
      * @param resource parameter required to find a resource
      * @return Permission if found
      */
@@ -28,7 +26,7 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
     /**
      * Find a permission by a specific user and resource name
      *
-     * @param userId         user parameter
+     * @param userId       user parameter
      * @param resourceName parameter required to find a resource name
      * @return Permission if found
      */
@@ -37,7 +35,7 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
     /**
      * Find a permission by a specific user, resource name and resource id
      *
-     * @param userId         user parameter
+     * @param userId       user parameter
      * @param resourceName parameter required to find a resource name
      * @param id           parameter required to find a resource id
      * @return Permission if found
@@ -47,7 +45,7 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
     /**
      * Find a permission by a specific role and resource
      *
-     * @param roleId     parameter required to find role by roleId
+     * @param roleId   parameter required to find role by roleId
      * @param resource parameter required to find a resource
      * @return Permission if found
      */
@@ -56,7 +54,7 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
     /**
      * Find a permission by a specific role and resource name
      *
-     * @param roleId         parameter required to find role by roleId
+     * @param roleId       parameter required to find role by roleId
      * @param resourceName parameter required to find a resource name
      * @return Permission if found
      */
@@ -73,7 +71,7 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
     /**
      * Find a permission by a specific role, resource name and resource id
      *
-     * @param roleId         parameter required to find role by roleId
+     * @param roleId       parameter required to find role by roleId
      * @param resourceName parameter required to find a resource name
      * @param resourceId   parameter required to find a resource id
      * @return Permission if found
