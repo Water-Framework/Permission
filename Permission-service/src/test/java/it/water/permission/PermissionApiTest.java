@@ -1,47 +1,45 @@
 package it.water.permission;
 
-import it.water.core.api.model.PaginableResult;
 import it.water.core.api.bundle.Runtime;
-import it.water.core.api.permission.Role;
-import it.water.core.api.permission.RoleManager;
+import it.water.core.api.model.PaginableResult;
+import it.water.core.api.model.Role;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.repository.query.Query;
+import it.water.core.api.role.RoleManager;
 import it.water.core.api.service.Service;
-import it.water.core.testing.utils.api.TestPermissionManager;
-import it.water.core.testing.utils.bundle.TestRuntimeInitializer;
+import it.water.core.api.user.UserManager;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.model.exceptions.ValidationException;
 import it.water.core.model.exceptions.WaterRuntimeException;
 import it.water.core.permission.exceptions.UnauthorizedException;
-import it.water.repository.entity.model.exceptions.DuplicateEntityException;
-
+import it.water.core.testing.utils.api.TestPermissionManager;
+import it.water.core.testing.utils.bundle.TestRuntimeInitializer;
 import it.water.core.testing.utils.junit.WaterTestExtension;
-
-import it.water.permission.api.*;
-import it.water.permission.model.*;
-
+import it.water.core.testing.utils.runtime.TestRuntimeUtils;
+import it.water.permission.api.PermissionApi;
+import it.water.permission.api.PermissionRepository;
+import it.water.permission.api.PermissionSystemApi;
+import it.water.permission.model.WaterPermission;
+import it.water.repository.entity.model.exceptions.DuplicateEntityException;
 import lombok.Setter;
-
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Generated with Water Generator.
  * Test class for Permission Services.
- * 
+ * <p>
  * Please use PermissionRestTestApi for ensuring format of the json response
- 
-
  */
 @ExtendWith(WaterTestExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PermissionApiTest implements Service {
-    
+
     @Inject
     @Setter
     private ComponentRegistry componentRegistry;
-    
+
     @Inject
     @Setter
     private PermissionApi permissionApi;
@@ -53,7 +51,7 @@ public class PermissionApiTest implements Service {
     @Inject
     @Setter
     private PermissionRepository permissionRepository;
-    
+
     @Inject
     @Setter
     //default permission manager in test environment;
@@ -64,6 +62,11 @@ public class PermissionApiTest implements Service {
     //test role manager
     private RoleManager roleManager;
 
+    @Inject
+    @Setter
+    //test role manager
+    private UserManager userManager;
+
     //admin user
     private it.water.core.api.model.User adminUser;
     private it.water.core.api.model.User permissionManagerUser;
@@ -73,7 +76,7 @@ public class PermissionApiTest implements Service {
     private Role permissionManagerRole;
     private Role permissionViewerRole;
     private Role permissionEditorRole;
-    
+
     @BeforeAll
     public void beforeAll() {
         //getting user
@@ -84,16 +87,17 @@ public class PermissionApiTest implements Service {
         Assertions.assertNotNull(permissionViewerRole);
         Assertions.assertNotNull(permissionEditorRole);
         //impersonate admin so we can test the happy path
-        adminUser = permissionManager.findUser("admin");
-        permissionManagerUser = permissionManager.addUser("manager", "name", "lastname", "manager@a.com", false);
-        permissionViewerUser = permissionManager.addUser("viewer", "name", "lastname", "viewer@a.com", false);
-        permissionEditorUser = permissionManager.addUser("editor", "name", "lastname", "editor@a.com", false);
+        adminUser = userManager.findUser("admin");
+        permissionManagerUser = userManager.addUser("manager", "name", "lastname", "manager@a.com", "Password!_", "salt", false);
+        permissionViewerUser = userManager.addUser("viewer", "name", "lastname", "viewer@a.com", "Password!_", "salt", false);
+        permissionEditorUser = userManager.addUser("editor", "name", "lastname", "editor@a.com", "Password!_", "salt", false);
         //starting with admin permissions
         roleManager.addRole(permissionManagerUser.getId(), permissionManagerRole);
         roleManager.addRole(permissionViewerUser.getId(), permissionViewerRole);
         roleManager.addRole(permissionEditorUser.getId(), permissionEditorRole);
-        //default security context in test environment is admin
+        TestRuntimeUtils.impersonateAdmin();
     }
+
     /**
      * Testing basic injection of basic component for permission entity.
      */
@@ -113,7 +117,7 @@ public class PermissionApiTest implements Service {
     @Test
     @Order(2)
     public void saveOk() {
-        WaterPermission entity = createPermission(0,0,0);
+        WaterPermission entity = createPermission(0, 0, 0);
         entity = this.permissionApi.save(entity);
         Assertions.assertEquals(1, entity.getEntityVersion());
         Assertions.assertTrue(entity.getId() > 0);
@@ -167,7 +171,7 @@ public class PermissionApiTest implements Service {
     @Order(6)
     public void findAllPaginatedShouldWork() {
         for (int i = 2; i < 11; i++) {
-            WaterPermission u = createPermission(i,0,0);
+            WaterPermission u = createPermission(i, 0, 0);
             this.permissionApi.save(u);
         }
         PaginableResult<WaterPermission> paginated = this.permissionApi.findAll(null, 7, 1, null);
@@ -199,11 +203,11 @@ public class PermissionApiTest implements Service {
     @Test
     @Order(8)
     public void saveShouldFailOnDuplicatedEntity() {
-        WaterPermission entity = createPermission(1,0,0);
+        WaterPermission entity = createPermission(1, 0, 0);
         this.permissionApi.save(entity);
-        WaterPermission duplicated = this.createPermission(1,0,0);
+        WaterPermission duplicated = this.createPermission(1, 0, 0);
         //cannot insert new entity wich breaks unique constraint
-        Assertions.assertThrows(DuplicateEntityException.class,() -> this.permissionApi.save(duplicated));
+        Assertions.assertThrows(DuplicateEntityException.class, () -> this.permissionApi.save(duplicated));
     }
 
     /**
@@ -212,8 +216,8 @@ public class PermissionApiTest implements Service {
     @Test
     @Order(9)
     public void updateShouldFailOnValidationFailure() {
-        WaterPermission newEntity = new WaterPermission("<script>function(){alert('ciao')!}</script>",2,"entityResourceName",0l,0,0);
-        Assertions.assertThrows(ValidationException.class,() -> this.permissionApi.save(newEntity));
+        WaterPermission newEntity = new WaterPermission("<script>function(){alert('ciao')!}</script>", 2, "entityResourceName", 0l, 0, 0);
+        Assertions.assertThrows(ValidationException.class, () -> this.permissionApi.save(newEntity));
     }
 
     /**
@@ -222,8 +226,8 @@ public class PermissionApiTest implements Service {
     @Order(10)
     @Test
     public void managerCanDoEverything() {
-        TestRuntimeInitializer.getInstance().impersonate(permissionManagerUser,runtime);
-        final WaterPermission entity = createPermission(101,0,0);
+        TestRuntimeInitializer.getInstance().impersonate(permissionManagerUser, runtime);
+        final WaterPermission entity = createPermission(101, 0, 0);
         WaterPermission savedEntity = Assertions.assertDoesNotThrow(() -> this.permissionApi.save(entity));
         savedEntity.setActionIds(8);
         Assertions.assertDoesNotThrow(() -> this.permissionApi.update(entity));
@@ -235,8 +239,8 @@ public class PermissionApiTest implements Service {
     @Order(11)
     @Test
     public void viewerCannotSaveOrUpdateOrRemove() {
-        TestRuntimeInitializer.getInstance().impersonate(permissionViewerUser,runtime);
-        final WaterPermission entity = createPermission(201,0,0);
+        TestRuntimeInitializer.getInstance().impersonate(permissionViewerUser, runtime);
+        final WaterPermission entity = createPermission(201, 0, 0);
         Assertions.assertThrows(UnauthorizedException.class, () -> this.permissionApi.save(entity));
         //viewer can search
         WaterPermission found = Assertions.assertDoesNotThrow(() -> this.permissionApi.findAll(null, -1, -1, null).getResults().stream().findFirst()).get();
@@ -250,17 +254,17 @@ public class PermissionApiTest implements Service {
     @Order(12)
     @Test
     public void editorCannotRemove() {
-        TestRuntimeInitializer.getInstance().impersonate(permissionEditorUser,runtime);
-        final WaterPermission entity = createPermission(301,0,0);
+        TestRuntimeInitializer.getInstance().impersonate(permissionEditorUser, runtime);
+        final WaterPermission entity = createPermission(301, 0, 0);
         WaterPermission savedEntity = Assertions.assertDoesNotThrow(() -> this.permissionApi.save(entity));
         savedEntity.setActionIds(8);
         Assertions.assertDoesNotThrow(() -> this.permissionApi.update(entity));
         Assertions.assertDoesNotThrow(() -> this.permissionApi.find(savedEntity.getId()));
         Assertions.assertThrows(UnauthorizedException.class, () -> this.permissionApi.remove(savedEntity.getId()));
     }
-    
-    private WaterPermission createPermission(int seed,long roleId,long userId){
-        WaterPermission entity = new WaterPermission("exampleName"+seed,2,"entityResourceName"+seed,(long)seed,roleId,userId);
+
+    private WaterPermission createPermission(int seed, long roleId, long userId) {
+        WaterPermission entity = new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, (long) seed, roleId, userId);
         return entity;
     }
 }
