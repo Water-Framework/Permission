@@ -95,7 +95,7 @@ public class PermissionApiTest implements Service {
         roleManager.addRole(permissionManagerUser.getId(), permissionManagerRole);
         roleManager.addRole(permissionViewerUser.getId(), permissionViewerRole);
         roleManager.addRole(permissionEditorUser.getId(), permissionEditorRole);
-        TestRuntimeUtils.impersonateAdmin();
+        TestRuntimeUtils.impersonateAdmin(componentRegistry);
     }
 
     /**
