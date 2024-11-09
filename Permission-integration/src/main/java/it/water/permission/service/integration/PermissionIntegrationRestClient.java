@@ -64,13 +64,13 @@ public class PermissionIntegrationRestClient implements PermissionIntegrationCli
     }
 
     @Override
-    public void checkOrCreatePermissions(long l, List<ResourceAction> list) {
-
+    public void checkOrCreatePermissions(long l, List<ResourceAction<?>> list) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void checkOrCreatePermissionsSpecificToEntity(long l, long l1, List<ResourceAction> list) {
-
+    public void checkOrCreatePermissionsSpecificToEntity(long l, long l1, List<ResourceAction<?>> list) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

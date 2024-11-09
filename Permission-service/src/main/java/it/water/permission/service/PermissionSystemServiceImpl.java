@@ -172,7 +172,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
      * @param actions List actions to add as permissions
      */
     @Override
-    public void checkOrCreatePermissions(long roleId, List<ResourceAction> actions) {
+    public void checkOrCreatePermissions(long roleId, List<ResourceAction<?>> actions) {
         this.repository.checkOrCreatePermissions(roleId, actions);
     }
 
@@ -182,7 +182,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
      * @param actions
      */
     @Override
-    public void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction> actions) {
+    public void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction<?>> actions) {
         this.repository.checkOrCreatePermissionsSpecificToEntity(roleId, entityId, actions);
     }
 

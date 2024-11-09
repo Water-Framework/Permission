@@ -545,7 +545,7 @@ public class PermissionManagerDefault implements PermissionManager {
     @Override
     public void addPermissionIfNotExists(Role role, Class<? extends Resource> resourceClass, Action action) {
         ResourceAction<?> resourceAction = ActionFactory.createResourceAction(resourceClass, action);
-        List<ResourceAction> permissionList = Collections.singletonList(resourceAction);
+        List<ResourceAction<?>> permissionList = Collections.singletonList(resourceAction);
         permissionIntegrationClient.checkOrCreatePermissions(role.getId(), permissionList);
     }
 }

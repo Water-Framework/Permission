@@ -70,12 +70,12 @@ public class PermissionIntegrationLocalClient implements PermissionIntegrationCl
     }
 
     @Override
-    public void checkOrCreatePermissions(long roleId, List<ResourceAction> list) {
+    public void checkOrCreatePermissions(long roleId, List<ResourceAction<?>> list) {
         permissionSystemApi.checkOrCreatePermissions(roleId, list);
     }
 
     @Override
-    public void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction> actions) {
+    public void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction<?>> actions) {
         permissionSystemApi.checkOrCreatePermissionsSpecificToEntity(roleId, entityId, actions);
     }
 

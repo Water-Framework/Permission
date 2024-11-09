@@ -158,7 +158,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     /**
      * Checks if  default "RegisteredUser" role exists, and, if not, creates it.
      */
-    public void checkOrCreatePermissions(long roleId, List<ResourceAction> actions) {
+    public void checkOrCreatePermissions(long roleId, List<ResourceAction<?>> actions) {
         txExpr(Transactional.TxType.REQUIRED, entityManager -> {
             HashMap<String, Long> actionsIds = new HashMap<>();
             HashMap<String, WaterPermission> existingPermissions = new HashMap<>();
@@ -190,7 +190,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      * The permission associated is relative to a specific entity.
      */
     @Override
-    public void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction> actions) {
+    public void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction<?>> actions) {
         txExpr(Transactional.TxType.REQUIRED, entityManager -> {
             HashMap<String, Long> actionsIds = new HashMap<>();
             HashMap<String, WaterPermission> existingPermissions = new HashMap<>();

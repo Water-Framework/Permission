@@ -82,14 +82,14 @@ public interface PermissionSystemApi extends BaseEntitySystemApi<WaterPermission
      * @param roleId
      * @param actions List actions to add as permissions
      */
-    void checkOrCreatePermissions(long roleId, List<ResourceAction> actions);
+    void checkOrCreatePermissions(long roleId, List<ResourceAction<?>> actions);
 
     /**
      * @param roleId
      * @param entityId
      * @param actions
      */
-    void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction> actions);
+    void checkOrCreatePermissionsSpecificToEntity(long roleId, long entityId, List<ResourceAction<?>> actions);
 
     /**
      * Verify if exist a permission specific to entity
