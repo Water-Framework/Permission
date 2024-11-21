@@ -41,6 +41,7 @@ dependencies {
 
 	implementation project (":Permission-api")
 	implementation project (":Permission-model")
+	implementation project (":Permission-service")
 
 	testImplementation group:'it.water.core',name:'Core-testing-utils',version:project.waterVersion
 

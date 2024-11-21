@@ -24,12 +24,15 @@ import it.water.core.permission.action.CrudActions;
 import it.water.core.permission.annotations.AccessControl;
 import it.water.core.permission.annotations.DefaultRoleAccess;
 import it.water.repository.entity.model.AbstractEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 import java.util.Date;
 
 /**
  * Test entity used just for saving permission and test them.
  */
+
 @AccessControl(availableActions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL, CrudActions.REMOVE},
         rolesPermissions = {
                 //Admin role can do everything
@@ -55,6 +58,7 @@ public class TestResource implements ProtectedEntity, OwnedResource, SharedEntit
     }
 
     @Override
+    @Id
     public long getId() {
         return id;
     }
