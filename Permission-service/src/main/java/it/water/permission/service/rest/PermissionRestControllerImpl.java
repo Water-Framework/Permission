@@ -35,7 +35,7 @@ public class PermissionRestControllerImpl extends BaseEntityRestApi<WaterPermiss
 
     @Override
     public Map<String, Map<String, Map<String, Boolean>>> elaboratePermissionMap(Map<String, List<Long>> entityPks) {
-        this.log.debug("Invoking elaboratePermissionMap from rest service for {}", this.getEntityService().getEntityType().getSimpleName());
+        log.debug("Invoking elaboratePermissionMap from rest service for {}", this.getEntityService().getEntityType().getSimpleName());
         return permissionApi.entityPermissionMap(entityPks);
     }
 }

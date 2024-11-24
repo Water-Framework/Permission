@@ -23,6 +23,7 @@ import it.water.core.api.service.integration.PermissionIntegrationClient;
 import it.water.core.interceptors.annotations.FrameworkComponent;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @FrameworkComponent
@@ -55,7 +56,7 @@ public class PermissionIntegrationRestClient implements PermissionIntegrationCli
     @Override
     public Collection<Permission> findByRole(long l) {
         //todo implement rest invocation and caching logic
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

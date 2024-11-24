@@ -28,7 +28,6 @@ import lombok.Setter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @FrameworkComponent
 public class PermissionIntegrationLocalClient implements PermissionIntegrationClient {
@@ -59,9 +58,7 @@ public class PermissionIntegrationLocalClient implements PermissionIntegrationCl
 
     @Override
     public Collection<Permission> findByRole(long roleId) {
-        Set<Permission> permissions = new HashSet<>();
-        permissionSystemApi.findByRole(roleId).forEach(waterPermission -> permissions.add(waterPermission));
-        return permissions;
+        return new HashSet<>(permissionSystemApi.findByRole(roleId));
     }
 
     @Override

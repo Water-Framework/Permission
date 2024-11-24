@@ -22,6 +22,8 @@ import java.util.*;
 public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermission> implements PermissionRepository {
     private static Logger log = LoggerFactory.getLogger(PermissionRepositoryImpl.class);
     private static final String PERMISSION_PERSISTENCE_UNIT = "permission-persistence-unit";
+    private static final String ENTITY_RESOURCE_FIELD_NAME = "entityResourceName";
+    private static final String ROLE_ID_FIELD_NAME = "roleId";
 
     public PermissionRepositoryImpl() {
         super(WaterPermission.class, PERMISSION_PERSISTENCE_UNIT);
@@ -56,7 +58,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                 p = entityManager.createQuery(
                                 "from WaterPermission p where p.userId = :userId and roleId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = 0",
                                 WaterPermission.class).setParameter("userId", userId)
-                        .setParameter("entityResourceName", entityResourceName).getSingleResult();
+                        .setParameter(ENTITY_RESOURCE_FIELD_NAME, entityResourceName).getSingleResult();
             } catch (NoResultException e) {
                 log.debug(e.getMessage(), e);
             }
@@ -80,7 +82,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                 entityManager.createQuery(
                                 "from WaterPermission p where p.userId = :userId and roleId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id",
                                 WaterPermission.class).setParameter("userId", userId)
-                        .setParameter("entityResourceName", entityResourceName).setParameter("id", id)
+                        .setParameter(ENTITY_RESOURCE_FIELD_NAME, entityResourceName).setParameter("id", id)
                         .getSingleResult()
         );
     }
@@ -113,8 +115,8 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
             try {
                 p = entityManager.createQuery(
                                 "from WaterPermission p where p.roleId = :roleId and userId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = 0",
-                                WaterPermission.class).setParameter("roleId", roleId)
-                        .setParameter("entityResourceName", entityResourceName).getSingleResult();
+                                WaterPermission.class).setParameter(ROLE_ID_FIELD_NAME, roleId)
+                        .setParameter(ENTITY_RESOURCE_FIELD_NAME, entityResourceName).getSingleResult();
             } catch (NoResultException | jakarta.persistence.NoResultException e) {
                 log.debug(e.getMessage(), e);
             }
@@ -135,7 +137,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                 entityManager
                         .createQuery("from WaterPermission p where p.roleId = :roleId and userId = 0",
                                 WaterPermission.class)
-                        .setParameter("roleId", roleId).getResultList()
+                        .setParameter(ROLE_ID_FIELD_NAME, roleId).getResultList()
         );
     }
 
@@ -152,7 +154,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     public WaterPermission findByRoleAndResourceNameAndResourceId(long roleId,
                                                                   String entityResourceName, long id) {
         log.debug("invoking findByRoleAndResourceNameAndResourceId Role: {}", roleId);
-        return tx(Transactional.TxType.REQUIRED, entityManager -> entityManager.createQuery("from WaterPermission p where p.roleId = :roleId and userId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id", WaterPermission.class).setParameter("roleId", roleId).setParameter("entityResourceName", entityResourceName).setParameter("id", id).getSingleResult());
+        return tx(Transactional.TxType.REQUIRED, entityManager -> entityManager.createQuery("from WaterPermission p where p.roleId = :roleId and userId = 0 and p.entityResourceName = :entityResourceName and p.resourceId = :id", WaterPermission.class).setParameter(ROLE_ID_FIELD_NAME, roleId).setParameter(ENTITY_RESOURCE_FIELD_NAME, entityResourceName).setParameter("id", id).getSingleResult());
     }
 
     /**
@@ -222,7 +224,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
             String query = "SELECT COUNT(p) from WaterPermission p where p.entityResourceName = :entityResourceName and p.resourceId = :resourceId";
             Number number = (Number) entityManager
                     .createQuery(query)
-                    .setParameter("entityResourceName", resourceName)
+                    .setParameter(ENTITY_RESOURCE_FIELD_NAME, resourceName)
                     .setParameter("resourceId", resourceId)
                     .getSingleResult();
             return number.longValue() > 0;
@@ -245,8 +247,8 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
             try {
                 p = entityManager.createQuery(
                                 "from WaterPermission p where p.roleId = :roleId and p.entityResourceName = :entityResourceName and p.resourceId = :id",
-                                WaterPermission.class).setParameter("roleId", roleId)
-                        .setParameter("entityResourceName", entityResourceName).setParameter("id", id)
+                                WaterPermission.class).setParameter(ROLE_ID_FIELD_NAME, roleId)
+                        .setParameter(ENTITY_RESOURCE_FIELD_NAME, entityResourceName).setParameter("id", id)
                         .getSingleResult();
             } catch (NoResultException e) {
                 log.debug(e.getMessage(), e);
@@ -284,19 +286,23 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                     // permission has not been changed
                     isUnchanged = true;
                 }
-
-                if (!isUnchanged) {
-                    // save or update
-                    try {
-                        if (!mustUpdate)
-                            this.persist(p);
-                        else
-                            this.update(p);
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                    }
-                }
+                saveOrUpdatePermission(isUnchanged, mustUpdate, p);
             }
         });
     }
+
+    private void saveOrUpdatePermission(boolean isUnchanged, boolean mustUpdate, WaterPermission p) {
+        if (!isUnchanged) {
+            // save or update
+            try {
+                if (!mustUpdate)
+                    this.persist(p);
+                else
+                    this.update(p);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+    }
+
 }

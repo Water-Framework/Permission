@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -163,7 +164,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
             return repository.findByRole(roleId);
         } catch (NoResultException e) {
             getLog().debug("No result searching for permission for role {}", roleId);
-            return null;
+            return Collections.emptyList();
         }
     }
 

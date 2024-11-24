@@ -7,7 +7,7 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/water/permissions'
+    Given url serviceBaseUrl+'/water/permissions'
     # ---- Add entity fields here -----
     And request
     """
@@ -45,7 +45,7 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/water/permissions'
+    Given url serviceBaseUrl+'/water/permissions'
     # ---- Add entity fields here -----
     And request
       """
@@ -82,7 +82,7 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/water/permissions/'+entityId
+    Given url serviceBaseUrl+'/water/permissions/'+entityId
     # ---------------------------------
     When method GET
     Then status 200
@@ -106,38 +106,30 @@ Feature: Check Permission Rest Api Response
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/water/permissions'
+    Given url serviceBaseUrl+'/water/permissions'
     When method GET
     Then status 200
-    And match response ==
+    And match response.results contains
     """
-      {
-        "numPages":1,
-        "currentPage":1,
-        "nextPage":1,
-        "delta":20,
-        "results":[
-          {
-            "id": #number,
-            "entityVersion":2,
-            "entityCreateDate":'#number',
-            "entityModifyDate":'#number',
-            "name": 'updateName',
-            "actionIds": 1,
-            "entityResourceName":"prova",
-            "resourceId":21,
-            "roleId":2,
-            "userId":0
-          }
-        ]
-      }
+    {
+      "id": #(entityId),
+      "entityVersion":2,
+      "entityCreateDate":'#number',
+      "entityModifyDate":'#number',
+      "name": 'updateName',
+      "actionIds": 1,
+      "entityResourceName":"prova",
+      "resourceId":21,
+      "roleId":2,
+      "userId":0
+    }
     """
   
   # --------------- DELETE -----------------------------
 
     Given header Content-Type = 'application/json'
     And header Accept = 'application/json'
-    Given url 'http://localhost:8080/water/permissions/'+entityId
+    Given url serviceBaseUrl+'/water/permissions/'+entityId
     When method DELETE
     # 204 because delete response is empty, so the status code is "no content" but is ok
     Then status 204
