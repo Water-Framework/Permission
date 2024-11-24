@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -49,7 +48,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
                 , userId, resource.getResourceName());
         try {
             return repository.findByUserAndResource(userId, resource);
-        } catch (NoResultException e) {
+        } catch (NoResultException | jakarta.persistence.NoResultException e) {
             getLog().debug("No result searching for permission for user: {} Resource: {}"
                     , userId, resource.getResourceName());
             return null;
@@ -68,7 +67,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
                 , userId, resourceName);
         try {
             return repository.findByUserAndResourceName(userId, resourceName);
-        } catch (NoResultException e) {
+        } catch (NoResultException | jakarta.persistence.NoResultException e) {
             getLog().debug("No result searching for permission for user {} Resource: {}", userId, resourceName);
             return null;
         }
@@ -88,7 +87,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
                 , userId, resourceName);
         try {
             return repository.findByUserAndResourceNameAndResourceId(userId, resourceName, id);
-        } catch (NoResultException e) {
+        } catch (NoResultException | jakarta.persistence.NoResultException e) {
             getLog().debug("No result searching for permission for user {} Resource: {} with id: {}", userId, resourceName, id);
             return null;
         }
@@ -104,13 +103,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     public WaterPermission findByRoleAndResource(long roleId, Resource resource) {
         getLog().debug("invoking findByRoleAndResource role: {} Resource: {}"
                 , roleId, resource.getResourceName());
-        try {
-            return repository.findByRoleAndResource(roleId, resource);
-        } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for role: {} Resource: {}"
-                    , roleId, resource.getResourceName());
-            return null;
-        }
+        return repository.findByRoleAndResource(roleId, resource);
     }
 
     /**
@@ -123,12 +116,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     public WaterPermission findByRoleAndResourceName(long roleId, String resourceName) {
         getLog().debug("invoking findByRoleAndResourceName role: {} Resource: {}"
                 , roleId, resourceName);
-        try {
-            return repository.findByRoleAndResourceName(roleId, resourceName);
-        } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for role {} Resource: {}", roleId, resourceName);
-            return null;
-        }
+        return repository.findByRoleAndResourceName(roleId, resourceName);
     }
 
     /**
@@ -145,7 +133,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
                 , roleId, resourceName);
         try {
             return repository.findByRoleAndResourceNameAndResourceId(roleId, resourceName, id);
-        } catch (NoResultException e) {
+        } catch (NoResultException | jakarta.persistence.NoResultException e) {
             getLog().debug("No result searching for permission for role {} Resource: {}} with id: {}", roleId, resourceName, id);
             return null;
         }
@@ -160,12 +148,7 @@ public class PermissionSystemServiceImpl extends BaseEntitySystemServiceImpl<Wat
     @Override
     public Collection<WaterPermission> findByRole(long roleId) {
         getLog().debug("invoking findByRoleAndResourceName role: {}", roleId);
-        try {
-            return repository.findByRole(roleId);
-        } catch (NoResultException e) {
-            getLog().debug("No result searching for permission for role {}", roleId);
-            return Collections.emptyList();
-        }
+        return repository.findByRole(roleId);
     }
 
     /**

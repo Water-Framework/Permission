@@ -1,18 +1,25 @@
 package it.water.permission;
 
+import it.water.core.api.action.Action;
+import it.water.core.api.action.ActionsManager;
+import it.water.core.api.action.ResourceAction;
 import it.water.core.api.bundle.Runtime;
 import it.water.core.api.model.PaginableResult;
+import it.water.core.api.model.Resource;
 import it.water.core.api.model.Role;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.repository.query.Query;
 import it.water.core.api.role.RoleManager;
 import it.water.core.api.service.Service;
+import it.water.core.api.service.integration.PermissionIntegrationClient;
 import it.water.core.api.user.UserManager;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.model.exceptions.ValidationException;
 import it.water.core.model.exceptions.WaterRuntimeException;
+import it.water.core.permission.action.ActionFactory;
+import it.water.core.permission.action.CrudActions;
+import it.water.core.permission.action.DefaultActionList;
 import it.water.core.permission.exceptions.UnauthorizedException;
-import it.water.core.testing.utils.api.TestPermissionManager;
 import it.water.core.testing.utils.bundle.TestRuntimeInitializer;
 import it.water.core.testing.utils.junit.WaterTestExtension;
 import it.water.core.testing.utils.runtime.TestRuntimeUtils;
@@ -24,6 +31,11 @@ import it.water.repository.entity.model.exceptions.DuplicateEntityException;
 import lombok.Setter;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Generated with Water Generator.
@@ -46,6 +58,14 @@ class PermissionApiTest implements Service {
 
     @Inject
     @Setter
+    private PermissionIntegrationClient permissionIntegrationClient;
+
+    @Inject
+    @Setter
+    private PermissionSystemApi permissionSystemApi;
+
+    @Inject
+    @Setter
     private Runtime runtime;
 
     @Inject
@@ -54,8 +74,7 @@ class PermissionApiTest implements Service {
 
     @Inject
     @Setter
-    //default permission manager in test environment;
-    private TestPermissionManager permissionManager;
+    private ActionsManager actionsManager;
 
     @Inject
     @Setter
@@ -160,7 +179,7 @@ class PermissionApiTest implements Service {
     @Order(5)
     void findAllShouldWork() {
         PaginableResult<WaterPermission> all = this.permissionApi.findAll(null, -1, -1, null);
-        Assertions.assertEquals(1,all.getResults().size());
+        Assertions.assertEquals(1, all.getResults().size());
     }
 
     /**
@@ -194,7 +213,7 @@ class PermissionApiTest implements Service {
         paginated.getResults().forEach(entity -> {
             this.permissionApi.remove(entity.getId());
         });
-        Assertions.assertEquals(0,this.permissionApi.countAll(null));
+        Assertions.assertEquals(0, this.permissionApi.countAll(null));
     }
 
     /**
@@ -265,8 +284,65 @@ class PermissionApiTest implements Service {
         Assertions.assertThrows(UnauthorizedException.class, () -> this.permissionApi.remove(savedId));
     }
 
+    @Order(13)
+    @Test
+    void testPermissionSystemApi() {
+        WaterPermission waterPermission = createPermission(10001, 0, adminUser.getId(), 0);
+        WaterPermission waterRolePermission = createPermission(10001, permissionViewerRole.getId(), 0, 0);
+        TestResource t = new TestResource(waterPermission.getEntityResourceName());
+        TestRuntimeUtils.impersonateAdmin(componentRegistry);
+        Assertions.assertNull(permissionIntegrationClient.findByUserAndResourceName(adminUser.getId(), waterPermission.getEntityResourceName()));
+        Assertions.assertNull(permissionIntegrationClient.findByUserAndResourceNameAndResourceId(adminUser.getId(), waterPermission.getEntityResourceName(), 0));
+        Assertions.assertNull(permissionIntegrationClient.findByUserAndResource(adminUser.getId(), t));
+
+        Assertions.assertEquals(0, permissionIntegrationClient.findByRole(permissionViewerRole.getId()).size());
+        Assertions.assertNull(permissionSystemApi.findByRoleAndResource(permissionViewerRole.getId(), t));
+        Assertions.assertNull(permissionIntegrationClient.findByRoleAndResourceName(permissionViewerRole.getId(), waterRolePermission.getEntityResourceName()));
+        Assertions.assertNull(permissionIntegrationClient.findByRoleAndResourceNameAndResourceId(permissionViewerRole.getId(), waterRolePermission.getEntityResourceName(), 0));
+        permissionSystemApi.save(waterPermission);
+        permissionSystemApi.save(waterRolePermission);
+        Assertions.assertDoesNotThrow(() -> permissionIntegrationClient.findByUserAndResourceName(adminUser.getId(), waterPermission.getEntityResourceName()));
+        Assertions.assertDoesNotThrow(() -> permissionIntegrationClient.findByUserAndResourceNameAndResourceId(adminUser.getId(), waterPermission.getEntityResourceName(), 0));
+        Assertions.assertDoesNotThrow(() -> permissionIntegrationClient.findByUserAndResource(adminUser.getId(), t));
+
+        Assertions.assertEquals(1, permissionIntegrationClient.findByRole(permissionViewerRole.getId()).size());
+        Assertions.assertNotNull(permissionSystemApi.findByRoleAndResource(permissionViewerRole.getId(), t));
+        Assertions.assertNotNull(permissionIntegrationClient.findByRoleAndResourceName(permissionViewerRole.getId(), waterRolePermission.getEntityResourceName()));
+        Assertions.assertNotNull(permissionIntegrationClient.findByRoleAndResourceNameAndResourceId(permissionViewerRole.getId(), waterRolePermission.getEntityResourceName(), 0));
+
+        Map<String, List<Long>> pks = new HashMap<>();
+        pks.put(waterPermission.getEntityResourceName(), new ArrayList<>());
+        pks.get(waterPermission.getEntityResourceName()).add(waterPermission.getResourceId());
+        runtime.fillSecurityContext(null);
+        Assertions.assertThrows(UnauthorizedException.class, () -> permissionApi.entityPermissionMap(pks));
+        TestRuntimeUtils.impersonateAdmin(componentRegistry);
+        //In this test we use in memory test permission manager which does not support this operations
+        //in future this test may fail if the test permission manager is modified
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> permissionApi.entityPermissionMap(pks));
+
+        long permissionViewerId = permissionViewerRole.getId();
+        WaterPermission resourcePermission = createPermission(10002,TestResource.class,permissionViewerId,0,0);
+        permissionSystemApi.save(resourcePermission);
+
+        DefaultActionList<?> actionList = ActionFactory.createBaseCrudActionList(TestResource.class);
+        ResourceAction<?> action = actionList.getList().get(0);
+        List<ResourceAction<?>> createActions = new ArrayList<>();
+        createActions.add(action);
+        Assertions.assertDoesNotThrow(() -> permissionIntegrationClient.checkOrCreatePermissionsSpecificToEntity(permissionViewerId, 0, createActions));
+    }
+
+    private WaterPermission createPermission(int seed,Class<?> resourceClass, long roleId, long userId,long resourceId) {
+        WaterPermission entity = new WaterPermission("exampleName" + seed, 2, resourceClass.getName(), resourceId, roleId, userId);
+        return entity;
+    }
+
     private WaterPermission createPermission(int seed, long roleId, long userId) {
         WaterPermission entity = new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, (long) seed, roleId, userId);
+        return entity;
+    }
+
+    private WaterPermission createPermission(int seed, long roleId, long userId, long resourceId) {
+        WaterPermission entity = new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, resourceId, roleId, userId);
         return entity;
     }
 }

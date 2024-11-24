@@ -1,12 +1,11 @@
 package it.water.permission.service;
 
+import it.water.core.api.bundle.Runtime;
 import it.water.core.api.permission.PermissionManager;
-import it.water.core.api.permission.SecurityContext;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.interceptors.annotations.FrameworkComponent;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.permission.annotations.AllowLoggedUser;
-import it.water.core.permission.exceptions.UnauthorizedException;
 import it.water.permission.api.PermissionApi;
 import it.water.permission.api.PermissionSystemApi;
 import it.water.permission.model.WaterPermission;
@@ -36,9 +35,8 @@ public class PermissionServiceImpl extends BaseEntityServiceImpl<WaterPermission
     private PermissionManager permissionManager;
 
     @Inject
-    @Getter
     @Setter
-    private SecurityContext securityContext;
+    private Runtime currentRuntime;
 
     @Inject
     @Getter
@@ -52,8 +50,6 @@ public class PermissionServiceImpl extends BaseEntityServiceImpl<WaterPermission
     @Override
     @AllowLoggedUser
     public Map<String, Map<String, Map<String, Boolean>>> entityPermissionMap(Map<String, List<Long>> entityPks) {
-        if (securityContext == null)
-            throw new UnauthorizedException();
-        return permissionManager.entityPermissionMap(securityContext.getLoggedUsername(), entityPks);
+        return permissionManager.entityPermissionMap(currentRuntime.getSecurityContext().getLoggedUsername(), entityPks);
     }
 }

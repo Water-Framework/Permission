@@ -124,6 +124,20 @@ Feature: Check Permission Rest Api Response
       "userId":0
     }
     """
+
+    # --------------- PERMISSION MAP -----------------------------
+
+    Given header Content-Type = 'application/json'
+    And header Accept = 'application/json'
+    Given url serviceBaseUrl+'/water/permissions/map'
+    When method POST
+    And request
+      """
+      {
+      "entityTestResource": [1]
+      }
+    """
+    Then status 500
   
   # --------------- DELETE -----------------------------
 
