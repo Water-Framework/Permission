@@ -286,7 +286,7 @@ class PermissionApiTest implements Service {
 
     @Order(13)
     @Test
-    void testPermissionSystemApi() {
+    void testPermissionApi() {
         WaterPermission waterPermission = createPermission(10001, 0, adminUser.getId(), 0);
         WaterPermission waterRolePermission = createPermission(10001, permissionViewerRole.getId(), 0, 0);
         TestResource t = new TestResource(waterPermission.getEntityResourceName());

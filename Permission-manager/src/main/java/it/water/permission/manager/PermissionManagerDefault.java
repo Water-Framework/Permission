@@ -40,7 +40,6 @@ import it.water.core.interceptors.annotations.FrameworkComponent;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.permission.action.ActionFactory;
 import it.water.core.permission.action.UserActions;
-import it.water.repository.entity.model.exceptions.NoResultException;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -125,7 +124,7 @@ public class PermissionManagerDefault implements PermissionManager {
             return false;
 
         User user = this.userIntegrationClient.fetchUserByUsername(username);
-        if(user == null)
+        if (user == null)
             return false;
         // every protected entity is a base entity
         ProtectedEntity entityResource = (ProtectedEntity) entity;
@@ -142,13 +141,9 @@ public class PermissionManagerDefault implements PermissionManager {
      */
     @Override
     public boolean checkPermission(String username, String resourceName, Action action) {
-        if (!PermissionManager.isProtectedEntity(resourceName))
-            return true;
-
+        log.debug("invoking checkPermission User {} Entity Resource Name: {} Action: {} ", username, resourceName, action);
         if (username == null || resourceName == null || action == null)
             return false;
-
-        log.debug("invoking checkPermission User {} Entity Resource Name: {} Action Name: {}  actionId: {}", username, resourceName, action.getActionName(), action.getActionId());
 
         if (!PermissionManager.isProtectedEntity(resourceName))
             return true;
@@ -166,11 +161,11 @@ public class PermissionManagerDefault implements PermissionManager {
     @Override
     public boolean checkPermission(String username, Class<? extends Resource> resource,
                                    Action action) {
-        if (resource != null && !PermissionManager.isProtectedEntity(resource.getName()))
-            return true;
-
         if (username == null || resource == null || action == null)
             return false;
+
+        if (!PermissionManager.isProtectedEntity(resource.getName()))
+            return true;
 
         log.debug(
                 "invoking checkPermission User {} Entity Resource Name: {} Action Name: {}  actionId: {}", username, resource.getName(), action.getActionName(), action.getActionId());
@@ -307,39 +302,18 @@ public class PermissionManagerDefault implements PermissionManager {
 
         Collection<Role> userRoles = roleIntegrationClient.fetchUserRoles(user.getId());
 
-        if (userRoles == null || userRoles.isEmpty())
+        if (userRoles.isEmpty())
             return false;
 
         Iterator<? extends Role> it = userRoles.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Role r = it.next();
-
-            Permission permissionSpecific = null;
-            try {
-                permissionSpecific = permissionIntegrationClient.findByRoleAndResourceNameAndResourceId(r.getId(),
-                        entity.getResourceName(), entity.getId());
-            } catch (NoResultException | jakarta.persistence.NoResultException e) {
-                log.warn("No specific permission found for: {}  on resource {}"
-                        , r.getName(), entity.getResourceName());
-            }
-
-            Permission userPermissionSpecific = null;
-            try {
-                userPermissionSpecific = permissionIntegrationClient.findByUserAndResourceNameAndResourceId(user.getId(),
-                        entity.getResourceName(), entity.getId());
-            } catch (NoResultException | jakarta.persistence.NoResultException e) {
-                log.warn("No specific permission found for: {}  on resource {}"
-                        , user.getUsername(), entity.getResourceName());
-            }
-
-            Permission permissionImpersonation = null;
-            try {
-                permissionImpersonation = permissionIntegrationClient.findByRoleAndResourceName(r.getId(),
-                        User.class.getName());
-            } catch (NoResultException | jakarta.persistence.NoResultException e) {
-                log.warn("No impersonification permission found for: {}  on resource {}"
-                        , r.getName(), entity.getResourceName());
-            }
+            Permission permissionSpecific = permissionIntegrationClient.findByRoleAndResourceNameAndResourceId(r.getId(),
+                    entity.getResourceName(), entity.getId());
+            Permission userPermissionSpecific = permissionIntegrationClient.findByUserAndResourceNameAndResourceId(user.getId(),
+                    entity.getResourceName(), entity.getId());
+            Permission permissionImpersonation = permissionIntegrationClient.findByRoleAndResourceName(r.getId(),
+                    User.class.getName());
             // it initialize the value with the general value based on resource name
             // general permission is : permission based on the role or permission based on user
             boolean hasGeneralPermission = hasGeneralPermission(user, r, entity, action);
@@ -370,20 +344,8 @@ public class PermissionManagerDefault implements PermissionManager {
     }
 
     private boolean hasGeneralPermission(User user, Role r, ProtectedEntity entity, Action action) {
-        Permission permission = null;
-        try {
-            permission = permissionIntegrationClient.findByRoleAndResourceName(r.getId(), entity.getResourceName());
-        } catch (NoResultException | jakarta.persistence.NoResultException e) {
-            log.warn("No permission found for: {}  on resource {}"
-                    , r.getName(), entity.getResourceName());
-        }
-        Permission userPermission = null;
-        try {
-            userPermission = permissionIntegrationClient.findByUserAndResourceName(user.getId(), entity.getResourceName());
-        } catch (NoResultException | jakarta.persistence.NoResultException e) {
-            log.warn("No permission found for: {}  on resource {}"
-                    , user.getUsername(), entity.getResourceName());
-        }
+        Permission permission = permissionIntegrationClient.findByRoleAndResourceName(r.getId(), entity.getResourceName());
+        Permission userPermission = permissionIntegrationClient.findByUserAndResourceName(user.getId(), entity.getResourceName());
         return (permission != null
                 && hasPermission(permission.getActionIds(), action.getActionId())) || (userPermission != null && hasPermission(userPermission.getActionIds(), action.getActionId()));
     }
@@ -431,7 +393,7 @@ public class PermissionManagerDefault implements PermissionManager {
             boolean mustBreak = false;
             if (entity instanceof OwnedResource ownedResource) {
                 resourceOwner = ownedResource.getUserOwner();
-                if (resourceOwnerDoesNotMatch(resourceOwner,user,userSharesResource)) {
+                if (resourceOwnerDoesNotMatch(resourceOwner, user, userSharesResource)) {
                     return false;
                 }
                 mustBreak = true;
@@ -452,7 +414,7 @@ public class PermissionManagerDefault implements PermissionManager {
         return doCheckUserOwnsResource(user, resourceOwner, resource, entity, userSharesResource);
     }
 
-    private boolean resourceOwnerDoesNotMatch(User resourceOwner,User user,boolean userSharesResource){
+    private boolean resourceOwnerDoesNotMatch(User resourceOwner, User user, boolean userSharesResource) {
         return !userSharesResource && resourceOwner != null && resourceOwner.getId() != 0
                 && user.getId() != resourceOwner.getId();
     }
