@@ -384,7 +384,7 @@ public class PermissionManagerDefault implements PermissionManager {
             return true;
 
         BaseEntity entity = (BaseEntity) resource;
-        User resourceOwner = null;
+        Long resourceOwnerId = null;
         //used when user shares only child entities
         boolean userSharesResource = checkUserSharesResource(user, entity);
         // looks up for a persisted entity in the hierarchy chain
@@ -392,8 +392,8 @@ public class PermissionManagerDefault implements PermissionManager {
             // double check if the passed entity is consistent (must belong to `user`)
             boolean mustBreak = false;
             if (entity instanceof OwnedResource ownedResource) {
-                resourceOwner = ownedResource.getUserOwner();
-                if (resourceOwnerDoesNotMatch(resourceOwner, user, userSharesResource)) {
+                resourceOwnerId = ownedResource.getOwnerUserId();
+                if (resourceOwnerDoesNotMatch(resourceOwnerId, user, userSharesResource)) {
                     return false;
                 }
                 mustBreak = true;
@@ -411,15 +411,15 @@ public class PermissionManagerDefault implements PermissionManager {
                 break;
         }
 
-        return doCheckUserOwnsResource(user, resourceOwner, resource, entity, userSharesResource);
+        return doCheckUserOwnsResource(user, resourceOwnerId, resource, entity, userSharesResource);
     }
 
-    private boolean resourceOwnerDoesNotMatch(User resourceOwner, User user, boolean userSharesResource) {
-        return !userSharesResource && resourceOwner != null && resourceOwner.getId() != 0
-                && user.getId() != resourceOwner.getId();
+    private boolean resourceOwnerDoesNotMatch(Long resourceOwnerId, User user, boolean userSharesResource) {
+        return !userSharesResource && resourceOwnerId != null && resourceOwnerId.longValue() != 0
+                && user.getId() != resourceOwnerId.longValue();
     }
 
-    private boolean doCheckUserOwnsResource(User user, User resourceOwner, Object resource, BaseEntity entity, boolean userSharesResource) {
+    private boolean doCheckUserOwnsResource(User user, Long resourceOwnerId, Object resource, BaseEntity entity, boolean userSharesResource) {
         if (entity.getId() == 0)
             return true;
         // load the persisted entity
@@ -428,7 +428,7 @@ public class PermissionManagerDefault implements PermissionManager {
             BaseEntity persistedEntity = service.find(entity.getId());
             // verify the owner
             if (persistedEntity instanceof OwnedResource ownedResource) {
-                resourceOwner = ownedResource.getUserOwner();
+                resourceOwnerId = ownedResource.getOwnerUserId();
             } else if (persistedEntity instanceof OwnedChildResource persistedChildEntity) {
                 if (persistedChildEntity.getParent() != null) {
                     // retry with the parent resource
@@ -440,7 +440,7 @@ public class PermissionManagerDefault implements PermissionManager {
                 return (persistedEntity != null);
             }
         }
-        return (resourceOwner != null && (user.getId() == resourceOwner.getId() || userSharesResource));
+        return (resourceOwnerId != null && (user.getId() == resourceOwnerId.longValue() || userSharesResource));
     }
 
     /**
