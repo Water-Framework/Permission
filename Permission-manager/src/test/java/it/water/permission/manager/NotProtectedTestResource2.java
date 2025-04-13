@@ -27,6 +27,7 @@ public class NotProtectedTestResource2 implements BaseEntity, OwnedResource {
     private User owner;
 
     public NotProtectedTestResource2() {
+        //do nothing
     }
 
     @Override
@@ -55,13 +56,13 @@ public class NotProtectedTestResource2 implements BaseEntity, OwnedResource {
     }
 
     @Override
-    public User getUserOwner() {
-        return owner;
+    public Long getOwnerUserId() {
+        return owner.getId();
     }
 
     @Override
-    public void setUserOwner(User user) {
-        this.owner = user;
+    public void setOwnerUserId(Long aLong) {
+        //not needed
     }
 
     @Override

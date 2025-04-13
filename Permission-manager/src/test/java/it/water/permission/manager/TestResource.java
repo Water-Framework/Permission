@@ -18,13 +18,10 @@ package it.water.permission.manager;
 
 import it.water.core.api.entity.owned.OwnedResource;
 import it.water.core.api.entity.shared.SharedEntity;
-import it.water.core.api.model.User;
 import it.water.core.api.permission.ProtectedEntity;
 import it.water.core.permission.action.CrudActions;
 import it.water.core.permission.annotations.AccessControl;
 import it.water.core.permission.annotations.DefaultRoleAccess;
-import it.water.repository.entity.model.AbstractEntity;
-import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 import java.util.Date;
@@ -51,7 +48,7 @@ public class TestResource implements ProtectedEntity, OwnedResource, SharedEntit
     private long id;
     private Integer version;
 
-    private User owner;
+    private Long ownerUserId;
 
     public void setId(long id) {
         this.id = id;
@@ -89,12 +86,12 @@ public class TestResource implements ProtectedEntity, OwnedResource, SharedEntit
     }
 
     @Override
-    public User getUserOwner() {
-        return owner;
+    public Long getOwnerUserId() {
+        return ownerUserId;
     }
 
     @Override
-    public void setUserOwner(User user) {
-        this.owner = user;
+    public void setOwnerUserId(Long aLong) {
+        this.ownerUserId = aLong;
     }
 }

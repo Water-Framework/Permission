@@ -16,19 +16,17 @@
 
 package it.water.permission.manager;
 
-import it.water.core.api.entity.owned.OwnedChildResource;
 import it.water.core.api.entity.owned.OwnedResource;
 import it.water.core.api.model.BaseEntity;
-import it.water.core.api.model.User;
-import it.water.user.model.WaterUser;
 
 import java.util.Date;
 
 public class NotProtectedTestResource implements BaseEntity, OwnedResource {
 
-    private User owner;
+    private Long ownerUserId;
 
     public NotProtectedTestResource() {
+        //do nothig
     }
 
     @Override
@@ -57,12 +55,12 @@ public class NotProtectedTestResource implements BaseEntity, OwnedResource {
     }
 
     @Override
-    public User getUserOwner() {
-        return owner;
+    public Long getOwnerUserId() {
+        return ownerUserId;
     }
 
     @Override
-    public void setUserOwner(User user) {
-        this.owner = user;
+    public void setOwnerUserId(Long aLong) {
+        this.ownerUserId = aLong;
     }
 }

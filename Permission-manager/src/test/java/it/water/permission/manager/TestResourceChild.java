@@ -59,4 +59,18 @@ public class TestResourceChild implements ProtectedEntity, OwnedChildResource {
     public void setEntityVersion(Integer integer) {
         throw new UnsupportedOperationException();
     }
+
+    public void setParent(TestResource parent) {
+        this.parent = parent;
+    }
+
+    @Override
+    public Long getOwnerUserId() {
+        return this.parent.getOwnerUserId();
+    }
+
+    @Override
+    public void setOwnerUserId(Long aLong) {
+        //do nothing
+    }
 }

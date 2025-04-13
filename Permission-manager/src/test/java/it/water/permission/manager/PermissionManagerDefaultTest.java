@@ -98,11 +98,11 @@ class PermissionManagerDefaultTest implements Service {
         noRoleUser = testUserManager.addUser("noRoleUser", "noRoleUser", "noRoleUser", "no-role-user@mail.com", "Password1_", "salt", false);
         actionsMap = actionsManager.getActions();
         testResource = new TestResource();
-        testResource.setUserOwner(viewerUser);
+        testResource.setOwnerUserId(viewerUser.getId());
         testResource.setId(1);
         testResourceChild = new TestResourceChild(testResource);
         notProtectedTestResource = new NotProtectedTestResource();
-        notProtectedTestResource.setUserOwner(managerUser);
+        notProtectedTestResource.setOwnerUserId(managerUser.getId());
         notProtectedTestResource2 = new NotProtectedTestResource2();
         //forcing a mock of the system api
         TestResourceSystemApi systemApi = componentRegistry.findComponent(TestResourceSystemApi.class, null);
@@ -152,22 +152,22 @@ class PermissionManagerDefaultTest implements Service {
         ActionList<?> actions = actionsManager.getActions().get(TestResource.class.getName());
         Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(), TestResource.class, actions.getAction(CrudActions.FIND)));
         Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(), NotProtectedTestResource.class, actions.getAction(CrudActions.FIND)));
-        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), (Class)null, actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), (Class) null, actions.getAction(CrudActions.FIND)));
         Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), TestResource.class, null));
         Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(), TestResource.class.getName(), actions.getAction(CrudActions.FIND)));
-        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), (String)null, actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), (String) null, actions.getAction(CrudActions.FIND)));
         Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), TestResource.class.getName(), actions.getAction(CrudActions.REMOVE)));
         Assertions.assertTrue(permissionManager.checkPermission(viewerUser.getUsername(), testResource, actions.getAction(CrudActions.FIND)));
-        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), (Resource)null, actions.getAction(CrudActions.FIND)));
+        Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), (Resource) null, actions.getAction(CrudActions.FIND)));
         Assertions.assertFalse(permissionManager.checkPermission(viewerUser.getUsername(), testResource, actions.getAction(CrudActions.REMOVE)));
         Assertions.assertTrue(permissionManager.checkPermission(adminUser.getUsername(), testResource, actions.getAction(CrudActions.REMOVE)));
         Assertions.assertFalse(permissionManager.checkPermission(null, testResource, actions.getAction(CrudActions.REMOVE)));
 
         Assertions.assertFalse(permissionManager.checkPermission(noPermissionUser.getUsername(), testResource, actions.getAction(CrudActions.REMOVE)));
-        Assertions.assertFalse(permissionManager.checkPermission("notExistingUser", (Resource)null, null));
-        Assertions.assertFalse(permissionManager.checkPermission(null, (Resource)null, null));
-        Assertions.assertFalse(permissionManager.checkPermission(null, (String)null, null));
-        Assertions.assertFalse(permissionManager.checkPermission(null, (Class)null, null));
+        Assertions.assertFalse(permissionManager.checkPermission("notExistingUser", (Resource) null, null));
+        Assertions.assertFalse(permissionManager.checkPermission(null, (Resource) null, null));
+        Assertions.assertFalse(permissionManager.checkPermission(null, (String) null, null));
+        Assertions.assertFalse(permissionManager.checkPermission(null, (Class) null, null));
         Assertions.assertFalse(permissionManager.checkPermission(noRoleUser.getUsername(), testResource, actions.getAction(CrudActions.REMOVE)));
         Assertions.assertFalse(permissionManager.checkPermission(noPermissionUser.getUsername(), testResource, actions.getAction(CrudActions.REMOVE)));
         Assertions.assertFalse(permissionManager.checkPermission("notExistingUser", testResource, actions.getAction(CrudActions.REMOVE)));
@@ -222,7 +222,6 @@ class PermissionManagerDefaultTest implements Service {
 
 
     private WaterPermission createPermission(int seed, long roleId, long userId) {
-        WaterPermission entity = new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, (long) seed, roleId, userId);
-        return entity;
+        return new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, (long) seed, roleId, userId);
     }
 }
