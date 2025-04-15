@@ -22,7 +22,7 @@ import it.water.core.api.model.User;
 
 import java.util.Date;
 
-public class NotProtectedTestResource2 implements BaseEntity, OwnedResource {
+public class NotProtectedTestResource2 implements BaseEntity {
 
     private User owner;
 
@@ -53,16 +53,6 @@ public class NotProtectedTestResource2 implements BaseEntity, OwnedResource {
     @Override
     public void setEntityVersion(Integer integer) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Long getOwnerUserId() {
-        return owner.getId();
-    }
-
-    @Override
-    public void setOwnerUserId(Long aLong) {
-        //not needed
     }
 
     @Override

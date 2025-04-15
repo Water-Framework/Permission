@@ -20,17 +20,32 @@ import it.water.core.api.service.integration.SharedEntityIntegrationClient;
 import it.water.core.interceptors.annotations.FrameworkComponent;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 /**
  * Simple mock to have more test coverage
  */
-@FrameworkComponent(services = SharedEntityIntegrationClient.class)
+@FrameworkComponent(priority = 2, services = SharedEntityIntegrationClient.class)
 public class FakeSharingIntegrationClient implements SharedEntityIntegrationClient {
+
+    private Collection<Long> sharedEntityIds = new HashSet<>();
 
     @Override
     public Collection<Long> fetchSharingUsersIds(String s, long l) {
         //just returning standard id
         return List.of(1l);
+    }
+
+    public void addId(long id) {
+        sharedEntityIds.add(id);
+    }
+
+    public void removeId(long id) {
+        sharedEntityIds.remove(id);
+    }
+
+    public void clearAll() {
+        sharedEntityIds.clear();
     }
 }

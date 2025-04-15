@@ -273,7 +273,7 @@ public class PermissionManagerDefault implements PermissionManager {
 
         Collection<Role> userRoles = roleIntegrationClient.fetchUserRoles(user.getId());
 
-        if (userRoles == null || userRoles.isEmpty())
+        if (userRoles.isEmpty())
             return false;
 
         Iterator<? extends Role> it = userRoles.iterator();
@@ -388,29 +388,12 @@ public class PermissionManagerDefault implements PermissionManager {
         //used when user shares only child entities
         boolean userSharesResource = checkUserSharesResource(user, entity);
         // looks up for a persisted entity in the hierarchy chain
-        while (true) {
-            // double check if the passed entity is consistent (must belong to `user`)
-            boolean mustBreak = false;
-            if (entity instanceof OwnedResource ownedResource) {
-                resourceOwnerId = ownedResource.getOwnerUserId();
-                if (resourceOwnerDoesNotMatch(resourceOwnerId, user, userSharesResource)) {
-                    return false;
-                }
-                mustBreak = true;
-            } else if (entity instanceof OwnedChildResource child) {
-                if (child.getParent() != null)
-                    entity = child.getParent();
-                else {
-                    mustBreak = true;
-                }
-            } else {
-                mustBreak = true;
+        if (entity instanceof OwnedResource ownedResource) {
+            resourceOwnerId = ownedResource.getOwnerUserId();
+            if (resourceOwnerDoesNotMatch(resourceOwnerId, user, userSharesResource)) {
+                return false;
             }
-
-            if (mustBreak)
-                break;
         }
-
         return doCheckUserOwnsResource(user, resourceOwnerId, resource, entity, userSharesResource);
     }
 
@@ -429,12 +412,6 @@ public class PermissionManagerDefault implements PermissionManager {
             // verify the owner
             if (persistedEntity instanceof OwnedResource ownedResource) {
                 resourceOwnerId = ownedResource.getOwnerUserId();
-            } else if (persistedEntity instanceof OwnedChildResource persistedChildEntity) {
-                if (persistedChildEntity.getParent() != null) {
-                    // retry with the parent resource
-                    return (persistedChildEntity.getParent() == null || checkUserOwnsResource(user, persistedChildEntity.getParent()))
-                            && checkUserOwnsResource(user, persistedChildEntity.getParent());
-                }
             } else {
                 // resource is not owned so check can pass
                 return (persistedEntity != null);
@@ -451,9 +428,6 @@ public class PermissionManagerDefault implements PermissionManager {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private boolean checkUserSharesResource(User user, Object resource) {
-        if (user.isAdmin())
-            return true;
-
         if (sharedEntityIntegrationClient == null)
             return false;
 

@@ -3,6 +3,7 @@ package it.water.permission.manager;
 import it.water.core.api.action.ActionList;
 import it.water.core.api.action.ActionsManager;
 import it.water.core.api.bundle.Runtime;
+import it.water.core.api.entity.shared.SharingEntityService;
 import it.water.core.api.model.Resource;
 import it.water.core.api.model.Role;
 import it.water.core.api.model.User;
@@ -10,11 +11,14 @@ import it.water.core.api.permission.PermissionManager;
 import it.water.core.api.registry.ComponentRegistry;
 import it.water.core.api.role.RoleManager;
 import it.water.core.api.service.Service;
+import it.water.core.api.service.integration.SharedEntityIntegrationClient;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.permission.action.CrudActions;
+import it.water.core.registry.model.ComponentConfigurationFactory;
 import it.water.core.testing.utils.api.TestPermissionManager;
 import it.water.core.testing.utils.api.TestUserManager;
 import it.water.core.testing.utils.bundle.TestRuntimeInitializer;
+import it.water.core.testing.utils.interceptors.TestServiceProxy;
 import it.water.core.testing.utils.junit.WaterTestExtension;
 import it.water.permission.api.PermissionApi;
 import it.water.permission.api.PermissionSystemApi;
@@ -23,6 +27,7 @@ import lombok.Setter;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -191,9 +196,22 @@ class PermissionManagerDefaultTest implements Service {
     @Order(5)
     void testCheckOwnership() {
         TestRuntimeInitializer.getInstance().impersonate(adminUser, runtime);
+        SharedEntityIntegrationClient sharedEntityIntegrationClient = TestRuntimeInitializer.getInstance().getComponentRegistry().findComponent(SharedEntityIntegrationClient.class,null);
+        TestServiceProxy proxy = (TestServiceProxy)Proxy.getInvocationHandler(sharedEntityIntegrationClient);
+        FakeSharingIntegrationClient fakeSharingIntegrationClient = (FakeSharingIntegrationClient) proxy.getRealService();
+        fakeSharingIntegrationClient.clearAll();
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResource));
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(adminUser, testResource));
         Assertions.assertFalse(permissionManager.checkUserOwnsResource(managerUser, testResource));
+        Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResourceChild));
+        Assertions.assertFalse(permissionManager.checkUserOwnsResource(managerUser, notProtectedTestResource2));
+        fakeSharingIntegrationClient.addId(viewerUser.getId());
+        Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResourceChild));
+        fakeSharingIntegrationClient.clearAll();
+        TestRuntimeInitializer.getInstance().getComponentRegistry().unregisterComponent(SharedEntityIntegrationClient.class,sharedEntityIntegrationClient);
+        sharedEntityIntegrationClient = TestRuntimeInitializer.getInstance().getComponentRegistry().findComponent(SharedEntityIntegrationClient.class,null);
+        TestRuntimeInitializer.getInstance().getComponentRegistry().unregisterComponent(SharedEntityIntegrationClient.class,sharedEntityIntegrationClient);
+        Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResourceChild));
     }
 
     @Test
@@ -202,6 +220,7 @@ class PermissionManagerDefaultTest implements Service {
         TestRuntimeInitializer.getInstance().impersonate(adminUser, runtime);
         ActionList<?> actions = actionsManager.getActions().get(TestResource.class.getName());
         Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResource.getResourceName(), actions.getAction(CrudActions.FIND), testResourceChild));
+        Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResource));
         Assertions.assertFalse(permissionManager.checkUserOwnsResource(viewerUser, notProtectedTestResource));
         Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_MANAGER, notProtectedTestResource.getResourceName(), actions.getAction(CrudActions.FIND), null));
         //testing on resource child
