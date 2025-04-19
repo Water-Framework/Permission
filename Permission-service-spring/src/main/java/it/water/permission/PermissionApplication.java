@@ -11,9 +11,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableWaterFramework
-@EnableJpaRepositories(basePackages = {"it.water.*", "it.water.permission.*"}, repositoryFactoryBeanClass = RepositoryFactory.class)
-@EntityScan({"it.water.*"})
-@ComponentScan({"it.water.*", "it.water.permission.*"})
+@EnableJpaRepositories(basePackages = {"it.water"}, repositoryFactoryBeanClass = RepositoryFactory.class)
+@EntityScan({"it.water"})
+@ComponentScan({"it.water"})
 public class PermissionApplication {
     public static void main(String[] args) {
         SpringApplication.run(PermissionApplication.class, args);
