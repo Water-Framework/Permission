@@ -30,7 +30,7 @@ import lombok.*;
 @Getter
 @Setter(AccessLevel.PROTECTED)
 @ToString
-@EqualsAndHashCode(of = {"id", "name", "entityResourceName", "actionIds"})
+@EqualsAndHashCode(of = {"name", "entityResourceName", "actionIds"},callSuper = true)
 //Actions and default roles access
 @AccessControl(availableActions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL, CrudActions.REMOVE, PermissionsActions.GIVE_PERMISSIONS, PermissionsActions.LIST_ACTIONS},
         rolesPermissions = {
@@ -65,7 +65,6 @@ public class WaterPermission extends AbstractJpaEntity implements Permission,Pro
     @JsonView(WaterJsonView.Extended.class)
     @Column
     @Positive
-    @NonNull
     @Setter(AccessLevel.PUBLIC)
     private long actionIds;
     /**
@@ -92,14 +91,19 @@ public class WaterPermission extends AbstractJpaEntity implements Permission,Pro
      * Role role for Permission
      */
     @JsonView(WaterJsonView.Extended.class)
-    @NonNull
     private long roleId;
 
     /**
      * Permissions can be related to roles or directly to users
      */
     @JsonView(WaterJsonView.Extended.class)
-    @NonNull
     private long userId;
+
+    public WaterPermission(String name, long actionIds, String entityResourceName, long resourceId, long roleId, long userId) {
+        this(name,entityResourceName,resourceId);
+        this.actionIds = actionIds;
+        this.roleId = roleId;
+        this.userId = userId;
+    }
 
 }

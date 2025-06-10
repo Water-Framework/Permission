@@ -378,7 +378,6 @@ public class PermissionManagerDefault implements PermissionManager {
      * @return true if the resource is owned by the current logged user or the
      * resource is not a owned resource, false otherwise.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public boolean checkUserOwnsResource(User user, Object resource) {
         if (user.isAdmin())
             return true;
@@ -426,7 +425,6 @@ public class PermissionManagerDefault implements PermissionManager {
      * @return true if the resource is shared to the current logged user or the
      * resource is not a shared resource, false otherwise.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private boolean checkUserSharesResource(User user, Object resource) {
         if (sharedEntityIntegrationClient == null)
             return false;

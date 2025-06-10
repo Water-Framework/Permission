@@ -16,12 +16,11 @@
 
 package it.water.permission.manager;
 
-import it.water.core.api.entity.owned.OwnedResource;
-import it.water.core.api.model.BaseEntity;
-
 import java.util.Date;
 
-public class NotProtectedTestResource implements BaseEntity, OwnedResource {
+import it.water.core.api.entity.owned.OwnedResource;
+
+public class NotProtectedTestResource implements OwnedResource {
 
     private Long ownerUserId;
 

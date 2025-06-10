@@ -16,14 +16,14 @@
 
 package it.water.permission.manager;
 
-import it.water.core.api.entity.owned.OwnedResource;
+import java.util.Date;
+
 import it.water.core.api.model.BaseEntity;
 import it.water.core.api.model.User;
 
-import java.util.Date;
-
 public class NotProtectedTestResource2 implements BaseEntity {
 
+    @SuppressWarnings("unused")
     private User owner;
 
     public NotProtectedTestResource2() {

@@ -1,9 +1,23 @@
 package it.water.permission.manager;
 
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import it.water.core.api.action.ActionList;
 import it.water.core.api.action.ActionsManager;
 import it.water.core.api.bundle.Runtime;
-import it.water.core.api.entity.shared.SharingEntityService;
 import it.water.core.api.model.Resource;
 import it.water.core.api.model.Role;
 import it.water.core.api.model.User;
@@ -14,7 +28,6 @@ import it.water.core.api.service.Service;
 import it.water.core.api.service.integration.SharedEntityIntegrationClient;
 import it.water.core.interceptors.annotations.Inject;
 import it.water.core.permission.action.CrudActions;
-import it.water.core.registry.model.ComponentConfigurationFactory;
 import it.water.core.testing.utils.api.TestPermissionManager;
 import it.water.core.testing.utils.api.TestUserManager;
 import it.water.core.testing.utils.bundle.TestRuntimeInitializer;
@@ -24,14 +37,6 @@ import it.water.permission.api.PermissionApi;
 import it.water.permission.api.PermissionSystemApi;
 import it.water.permission.model.WaterPermission;
 import lombok.Setter;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Generated with Water Generator.
@@ -148,6 +153,7 @@ class PermissionManagerDefaultTest implements Service {
         Assertions.assertTrue(permissionManager.userHasRoles(editorUser.getUsername(), new String[]{TestResource.TEST_ROLE_EDITOR}));
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test
     @Order(4)
     void testUserPermissions() {
@@ -197,6 +203,7 @@ class PermissionManagerDefaultTest implements Service {
     void testCheckOwnership() {
         TestRuntimeInitializer.getInstance().impersonate(adminUser, runtime);
         SharedEntityIntegrationClient sharedEntityIntegrationClient = TestRuntimeInitializer.getInstance().getComponentRegistry().findComponent(SharedEntityIntegrationClient.class,null);
+        @SuppressWarnings("rawtypes")
         TestServiceProxy proxy = (TestServiceProxy)Proxy.getInvocationHandler(sharedEntityIntegrationClient);
         FakeSharingIntegrationClient fakeSharingIntegrationClient = (FakeSharingIntegrationClient) proxy.getRealService();
         fakeSharingIntegrationClient.clearAll();
@@ -222,9 +229,9 @@ class PermissionManagerDefaultTest implements Service {
         Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResource.getResourceName(), actions.getAction(CrudActions.FIND), testResourceChild));
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResource));
         Assertions.assertFalse(permissionManager.checkUserOwnsResource(viewerUser, notProtectedTestResource));
-        Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_MANAGER, notProtectedTestResource.getResourceName(), actions.getAction(CrudActions.FIND), null));
+        Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_MANAGER, notProtectedTestResource.getResourceName(), actions.getAction(CrudActions.FIND), (Resource)null));
         //testing on resource child
-        Assertions.assertFalse(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResourceChild, actions.getAction(CrudActions.REMOVE), null));
+        Assertions.assertFalse(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResourceChild, actions.getAction(CrudActions.REMOVE),(Resource)null));
         Assertions.assertFalse(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResource.getResourceName(), actions.getAction(CrudActions.REMOVE), testResourceChild));
         Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResource, actions.getAction(CrudActions.FIND), testResource));
     }
@@ -240,7 +247,8 @@ class PermissionManagerDefaultTest implements Service {
     }
 
 
-    private WaterPermission createPermission(int seed, long roleId, long userId) {
-        return new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, (long) seed, roleId, userId);
+    @SuppressWarnings("unused")
+    private WaterPermission createPermission(Long seed, long roleId, long userId) {
+        return new WaterPermission("exampleName" + seed, 2, "entityResourceName" + seed, seed, (Long)roleId, (Long)userId);
     }
 }

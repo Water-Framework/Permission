@@ -16,15 +16,14 @@
 
 package it.water.permission.manager;
 
-import it.water.core.api.entity.owned.OwnedResource;
+import java.util.Date;
+
 import it.water.core.api.entity.shared.SharedEntity;
 import it.water.core.api.permission.ProtectedEntity;
 import it.water.core.permission.action.CrudActions;
 import it.water.core.permission.annotations.AccessControl;
 import it.water.core.permission.annotations.DefaultRoleAccess;
 import jakarta.persistence.Id;
-
-import java.util.Date;
 
 /**
  * Test entity used just for saving permission and test them.
@@ -39,7 +38,7 @@ import java.util.Date;
                 //Editor can do anything but remove
                 @DefaultRoleAccess(roleName = TestResource.TEST_ROLE_EDITOR, actions = {CrudActions.SAVE, CrudActions.UPDATE, CrudActions.FIND, CrudActions.FIND_ALL})
         })
-public class TestResource implements ProtectedEntity, OwnedResource, SharedEntity {
+public class TestResource implements ProtectedEntity, SharedEntity {
 
     public static final String TEST_ROLE_MANAGER = "test_manager";
     public static final String TEST_ROLE_VIEWER = "test_viewer";
