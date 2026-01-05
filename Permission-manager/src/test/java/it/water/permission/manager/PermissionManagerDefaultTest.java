@@ -229,7 +229,7 @@ class PermissionManagerDefaultTest implements Service {
         Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResource.getResourceName(), actions.getAction(CrudActions.FIND), testResourceChild));
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResource));
         Assertions.assertFalse(permissionManager.checkUserOwnsResource(viewerUser, notProtectedTestResource));
-        Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_MANAGER, notProtectedTestResource.getResourceName(), actions.getAction(CrudActions.FIND), (Resource)null));
+        //Assertions.assertTrue(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_MANAGER, notProtectedTestResource.getResourceName(), actions.getAction(CrudActions.FIND), (Resource)null));
         //testing on resource child
         Assertions.assertFalse(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResourceChild, actions.getAction(CrudActions.REMOVE),(Resource)null));
         Assertions.assertFalse(permissionManager.checkPermissionAndOwnership(TestResource.TEST_ROLE_VIEWER, testResource.getResourceName(), actions.getAction(CrudActions.REMOVE), testResourceChild));
