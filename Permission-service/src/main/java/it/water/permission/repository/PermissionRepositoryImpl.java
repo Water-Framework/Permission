@@ -178,7 +178,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                     existingPermissions.put(resourceClassName, p);
 
                 // create pair <resourceName, actionId> if resourceName does not exist, sum actionId otherwise
-                actionsIds.merge(resourceClassName, action.getAction().getActionId(), Long::sum);
+                actionsIds.merge(resourceClassName, action.getAction().getActionId(), (existing, toAdd) -> existing | toAdd);
             }
 
             checkOrCreatePermission(actionsIds, existingPermissions, roleId, 0L);
@@ -208,7 +208,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
                     existingPermissions.put(resAction.getResourceClass().getName(), p);
 
                 // create pair <resourceName, actionId> if resourceName does not exist, sum actionId otherwise
-                actionsIds.merge(resAction.getResourceClass().getName(), resAction.getAction().getActionId(), Long::sum);
+                actionsIds.merge(resAction.getResourceClass().getName(), resAction.getAction().getActionId(), (existing, toAdd) -> existing | toAdd);
             }
             checkOrCreatePermission(actionsIds, existingPermissions, roleId, entityId);
 
@@ -262,31 +262,38 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
      * This method is used only for internal execution.
      * This method isn't part of the OSGI service interface
      */
-    public void checkOrCreatePermission(Map<String, Long> actionsIds, Map<String, WaterPermission> existingPermissions, long roleId, long entityId) {
+    public void checkOrCreatePermission(Map<String, Long> actionIdsByResource, Map<String, WaterPermission> existingPermissions, long roleId, long entityId) {
+
         txExpr(Transactional.TxType.REQUIRED, entityManager -> {
-            // Save only modified permissions
-            Iterator<String> it = actionsIds.keySet().iterator();
+            // actionIdsByResource contain the value(actionIds)for each resource like-> Book actions = {CrudActions.FIND,CrudActions.FIND_ALL}),
+            Iterator<String> it = actionIdsByResource.keySet().iterator();
             while (it.hasNext()) {
                 String resourceName = it.next();
-                long actionIds = actionsIds.get(resourceName);
-                WaterPermission p = null;
+                long actionIdsToAdd  = actionIdsByResource.get(resourceName);
+                WaterPermission permissionToSave  = null;
                 boolean mustUpdate = false;
                 boolean isUnchanged = false;
                 String permissionName = resourceName + " Permissions";
-                if (!existingPermissions.containsKey(resourceName)) {
-                    // permission is new
-                    p = new WaterPermission(permissionName, actionIds, resourceName, entityId, roleId, 0l);
-                } else if (existingPermissions.get(resourceName).getActionIds() != actionIds) {
-                    // permission has been modified (i.e. actions have been added or removed)
-                    p = existingPermissions.get(resourceName);
-                    WaterPermission pUpdated = new WaterPermission(permissionName, actionIds, resourceName, entityId, roleId, 0l);
-                    pUpdated.setId(p.getId());
-                    mustUpdate = true;
-                } else {
-                    // permission has not been changed
-                    isUnchanged = true;
+                WaterPermission existingPermission = existingPermissions.get(resourceName);
+
+                // If no permission exists for this resource, create a new one
+                if (existingPermission == null) {
+                    permissionToSave  = new WaterPermission(permissionName, actionIdsToAdd, resourceName, entityId, roleId, 0l);
                 }
-                saveOrUpdatePermission(isUnchanged, mustUpdate, p);
+                // if the permission exists and the actionIds are different, update it
+                else {
+                    // with OR if you add the value that is already present, the value remains the same
+                    long newActionIds = existingPermission.getActionIds() | actionIdsToAdd;
+                    // update only if something changed
+                    if(newActionIds != existingPermission.getActionIds()) {
+                        // update actionIds
+                        permissionToSave  = existingPermission.withAccumulateActions(newActionIds);
+                        mustUpdate = true;
+                    } else {
+                        isUnchanged = true;
+                    }
+                }
+                saveOrUpdatePermission(isUnchanged, mustUpdate, permissionToSave);
             }
         });
     }
@@ -304,5 +311,6 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
             }
         }
     }
+
 
 }

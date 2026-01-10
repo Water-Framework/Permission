@@ -106,4 +106,36 @@ public class WaterPermission extends AbstractJpaEntity implements Permission,Pro
         this.userId = userId;
     }
 
+    /**
+     * Accumulates new actions without removing existing ones and returns
+     * a new WaterPermission instance if there are changes.
+     * Uses bitwise OR to safely merge actions and prevent duplicate accumulation
+     * across multiple program executions.
+     *  @param actionsToAdd the action IDs to add to this permission
+     *  @return a new WaterPermission instance with merged actions, or this instance if unchanged
+     *
+     */
+    public WaterPermission withAccumulateActions( long actionsToAdd) {
+
+        long newActionIds = this.actionIds | actionsToAdd;
+
+        // if nothing changes, we return the same object
+        if(newActionIds == this.actionIds) {
+            return this;
+        }
+        WaterPermission permissionWithNewActions  = new WaterPermission(
+                this.name,
+                newActionIds,
+                this.entityResourceName,
+                this.resourceId,
+                this.roleId,
+                this.userId
+        );
+        permissionWithNewActions.setId(this.getId());
+        permissionWithNewActions.setEntityVersion(this.getEntityVersion());
+        return permissionWithNewActions;
+
+
+    }
+
 }
