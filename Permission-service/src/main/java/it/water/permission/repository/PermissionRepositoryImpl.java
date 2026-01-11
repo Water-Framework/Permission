@@ -265,6 +265,7 @@ public class PermissionRepositoryImpl extends WaterJpaRepositoryImpl<WaterPermis
     public void checkOrCreatePermission(Map<String, Long> actionIdsByResource, Map<String, WaterPermission> existingPermissions, long roleId, long entityId) {
 
         txExpr(Transactional.TxType.REQUIRED, entityManager -> {
+
             // actionIdsByResource contain the value(actionIds)for each resource like-> Book actions = {CrudActions.FIND,CrudActions.FIND_ALL}),
             Iterator<String> it = actionIdsByResource.keySet().iterator();
             while (it.hasNext()) {
