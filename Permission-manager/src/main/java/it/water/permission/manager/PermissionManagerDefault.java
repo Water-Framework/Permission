@@ -436,8 +436,9 @@ public class PermissionManagerDefault implements PermissionManager {
         while (loop) {
             // double check if the passed entity is consistent (must be shared to `user`)
             if (entity instanceof SharedEntity) {
-                sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), entity.getId());
-                if (sharingUsers.stream().noneMatch(id -> id == user.getId())) {
+                sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), user.getId());
+                BaseEntity finalEntity = entity;
+                if (sharingUsers.stream().noneMatch(id -> Objects.equals(id, finalEntity.getId()))){
                     return false;
                 } else
                     loop = false;
@@ -465,7 +466,7 @@ public class PermissionManagerDefault implements PermissionManager {
                 if (sharedEntityIntegrationClient == null) {
                     sharingUsers = Collections.emptyList();
                 } else {
-                    sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), entity.getId());
+                    sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), user.getId());
                 }
             } else if (persistedEntity instanceof OwnedChildResource persistedChildEntity) {
                 if (persistedChildEntity.getParent() != null) {
@@ -477,7 +478,7 @@ public class PermissionManagerDefault implements PermissionManager {
                 return true;
             }
         }
-        return (sharingUsers.stream().anyMatch(id -> id == user.getId()));
+        return (sharingUsers.stream().anyMatch(id -> id == entity.getId()));
     }
 
     /**
