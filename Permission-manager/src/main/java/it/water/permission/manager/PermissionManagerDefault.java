@@ -430,15 +430,15 @@ public class PermissionManagerDefault implements PermissionManager {
             return false;
 
         BaseEntity entity = (BaseEntity) resource;
-        Collection<Long> sharingUsers = new ArrayList<>();
+        Collection<Long> sharedEntityIds= new ArrayList<>();
         // looks up for a persisted entity in the hierarchy chain
         boolean loop = true;
         while (loop) {
             // double check if the passed entity is consistent (must be shared to `user`)
             if (entity instanceof SharedEntity) {
-                sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), user.getId());
+                sharedEntityIds= sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), user.getId());
                 BaseEntity finalEntity = entity;
-                if (sharingUsers.stream().noneMatch(id -> Objects.equals(id, finalEntity.getId()))){
+                if (sharedEntityIds.stream().noneMatch(id -> Objects.equals(id, finalEntity.getId()))){
                     return false;
                 } else
                     loop = false;
@@ -451,10 +451,10 @@ public class PermissionManagerDefault implements PermissionManager {
                 loop = false;
         }
 
-        return doCheckUserSharesResource(sharingUsers, user, resource, entity);
+        return doCheckUserSharesResource(sharedEntityIds, user, resource, entity);
     }
 
-    private boolean doCheckUserSharesResource(Collection<Long> sharingUsers, User user, Object resource, BaseEntity entity) {
+    private boolean doCheckUserSharesResource(Collection<Long> sharedEntityIds, User user, Object resource, BaseEntity entity) {
         if (entity.getId() == 0)
             return false;
         // load the persisted entity
@@ -464,9 +464,9 @@ public class PermissionManagerDefault implements PermissionManager {
             // verify the owner
             if (persistedEntity instanceof SharedEntity) {
                 if (sharedEntityIntegrationClient == null) {
-                    sharingUsers = Collections.emptyList();
+                    sharedEntityIds = Collections.emptyList();
                 } else {
-                    sharingUsers = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), user.getId());
+                    sharedEntityIds = sharedEntityIntegrationClient.fetchSharingUsersIds(entity.getResourceName(), user.getId());
                 }
             } else if (persistedEntity instanceof OwnedChildResource persistedChildEntity) {
                 if (persistedChildEntity.getParent() != null) {
@@ -478,7 +478,7 @@ public class PermissionManagerDefault implements PermissionManager {
                 return true;
             }
         }
-        return (sharingUsers.stream().anyMatch(id -> id == entity.getId()));
+        return (sharedEntityIds.stream().anyMatch(id -> id == entity.getId()));
     }
 
     /**

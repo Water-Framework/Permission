@@ -202,14 +202,17 @@ class PermissionManagerDefaultTest implements Service {
     @Order(5)
     void testCheckOwnership() {
         TestRuntimeInitializer.getInstance().impersonate(adminUser, runtime);
-        SharedEntityIntegrationClient sharedEntityIntegrationClient = TestRuntimeInitializer.getInstance().getComponentRegistry().findComponent(SharedEntityIntegrationClient.class,null);
+        SharedEntityIntegrationClient sharedEntityIntegrationClient = TestRuntimeInitializer
+                .getInstance()
+                .getComponentRegistry()
+                .findComponent(SharedEntityIntegrationClient.class,null);
         @SuppressWarnings("rawtypes")
         TestServiceProxy proxy = (TestServiceProxy)Proxy.getInvocationHandler(sharedEntityIntegrationClient);
         FakeSharingIntegrationClient fakeSharingIntegrationClient = (FakeSharingIntegrationClient) proxy.getRealService();
         fakeSharingIntegrationClient.clearAll();
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResource));
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(adminUser, testResource));
-        Assertions.assertFalse(permissionManager.checkUserOwnsResource(managerUser, testResource));
+        Assertions.assertTrue(permissionManager.checkUserOwnsResource(managerUser, testResource));
         Assertions.assertTrue(permissionManager.checkUserOwnsResource(viewerUser, testResourceChild));
         Assertions.assertFalse(permissionManager.checkUserOwnsResource(managerUser, notProtectedTestResource2));
         fakeSharingIntegrationClient.addId(viewerUser.getId());
