@@ -306,6 +306,7 @@ public class PermissionManagerDefault implements PermissionManager {
             return false;
 
         Iterator<? extends Role> it = userRoles.iterator();
+        boolean hasPermission = false;
         while (it.hasNext()) {
             Role r = it.next();
             Permission permissionSpecific = permissionIntegrationClient.findByRoleAndResourceNameAndResourceId(r.getId(),
@@ -326,9 +327,9 @@ public class PermissionManagerDefault implements PermissionManager {
             boolean userSharesResource = checkUserSharesResource(user, entity);
             boolean hasImpersonationPermission = impersonateAction != null && permissionImpersonation != null && hasPermission(
                     permissionImpersonation.getActionIds(), impersonateAction.getActionId());
-            return calculatePermission(permissionSpecific, userPermissionSpecific, hasEntityPermission, hasGeneralPermission, userOwnsResource, userSharesResource, existPermissionSpecificToEntity) || hasImpersonationPermission;
+            hasPermission = hasPermission || calculatePermission(permissionSpecific, userPermissionSpecific, hasEntityPermission, hasGeneralPermission, userOwnsResource, userSharesResource, existPermissionSpecificToEntity) || hasImpersonationPermission;
         }
-        return false;
+        return hasPermission;
     }
 
     private boolean calculatePermission(Permission permissionSpecific, Permission userPermissionSpecific, boolean hasEntityPermission, boolean hasGeneralPermission, boolean userOwnsResource, boolean userSharesResource, boolean existPermissionSpecificToEntity) {
