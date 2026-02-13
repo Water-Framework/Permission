@@ -36,7 +36,9 @@ Feature: Check Permission Rest Api Response
         "entityResourceName":"prova",
         "resourceId":21,
         "roleId":2,
-        "userId":0
+        "userId":0,
+        "categoryIds": #null,
+        "tagIds": #null
        }
     """
     * def entityId = response.id
@@ -74,10 +76,12 @@ Feature: Check Permission Rest Api Response
         "entityResourceName":"prova",
         "resourceId":21,
         "roleId":2,
-        "userId":0
+        "userId":0,
+        "categoryIds": #null,
+        "tagIds": #null
        }
     """
-  
+
   # --------------- FIND -----------------------------
 
     Given header Content-Type = 'application/json'
@@ -98,10 +102,12 @@ Feature: Check Permission Rest Api Response
         "entityResourceName":"prova",
         "resourceId":21,
         "roleId":2,
-        "userId":0
+        "userId":0,
+        "categoryIds": #null,
+        "tagIds": #null
        }
     """
-    
+
   # --------------- FIND ALL -----------------------------
 
     Given header Content-Type = 'application/json'
@@ -121,7 +127,9 @@ Feature: Check Permission Rest Api Response
       "entityResourceName":"prova",
       "resourceId":21,
       "roleId":2,
-      "userId":0
+      "userId":0,
+      "categoryIds": #null,
+      "tagIds": #null
     }
     """
 
