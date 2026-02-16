@@ -1,145 +1,186 @@
 # Permission Module
 
-## Module Goal
-Il modulo Permission fornisce il sistema di gestione dei permessi e delle autorizzazioni all'interno del Water Framework. Permette di definire, assegnare e verificare permessi su entità, risorse e azioni, sia a livello di ruolo che di utente, garantendo un controllo granulare e centralizzato delle policy di sicurezza applicativa.
+The **Permission** module provides the permission management system for the Water Framework. It enables defining, assigning, and verifying permissions on entities, resources, and actions — at both role and user level — ensuring granular and centralized control over application security policies.
 
-## Module Technical Characteristics
+## Architecture Overview
 
-### Tecnologie principali
-- **JPA (Jakarta Persistence API):** Gestione della persistenza delle entità Permission.
-- **Water Core Modules:** Integrazione con i moduli core, security, validation, registry e service del framework.
-- **Spring/OSGi Ready:** Componente utilizzabile sia in ambienti Spring che OSGi.
-- **REST API:** Esposizione CRUD e servizi di calcolo permessi tramite JAX-RS.
-- **Lombok:** Riduzione del boilerplate.
-- **JUnit 5:** Test di integrazione e validazione delle policy.
+```mermaid
+graph TD
+    A[Permission Module] --> B[Permission-api]
+    A --> C[Permission-model]
+    A --> D[Permission-service]
+    A --> E[Permission-service-spring]
 
-### Componenti architetturali
-- **API Layer (`Permission-api`)**
-  - `PermissionApi`: API esterna per operazioni CRUD e calcolo delle mappe permessi.
-  - `PermissionSystemApi`: API interna per operazioni privilegiate e bypass del sistema permessi.
-  - `PermissionRepository`: Interfaccia repository per la persistenza e query avanzate.
-  - `PermissionRestApi`: Interfaccia REST CRUD e servizi di calcolo permessi.
-- **Model Layer (`Permission-model`)**
-  - `WaterPermission`: Entità JPA che rappresenta un permesso, con supporto a ruoli, utenti, risorse e azioni.
-- **Service Layer**
-  - Implementazioni dei servizi e repository, con logica di validazione, controllo duplicati e gestione versioni.
-- **Test Layer**
-  - Test di integrazione su ruoli, utenti, permessi, validazione, duplicati, policy e mappa permessi.
-
-### Caratteristiche chiave
-- Gestione permessi a livello di ruolo e utente
-- Supporto a permessi specifici per entità e azioni custom
-- CRUD completo e API REST per permessi
-- Calcolo mappa permessi per utente/loggato
-- Validazione, controllo duplicati e gestione versioni
-- Policy di accesso configurabili tramite annotazioni e ruoli
-
-## Permission and Security
-- **Ruoli e Policy:**
-  - `permissionManager`: pieno controllo CRUD e gestione permessi
-  - `permissionViewer`: accesso in sola lettura
-  - `permissionEditor`: può creare/aggiornare ma non rimuovere
-- **Annotazioni di sicurezza:**
-  - `@AccessControl` e `@DefaultRoleAccess` per definire policy a livello di entità
-  - `@LoggedIn` su tutte le API REST
-- **Validazione:**
-  - Validazione su campi obbligatori, formati, duplicati e codice malevolo
-  - Gestione versioni ottimistiche per update concorrenti
-- **Controllo automatico:**
-  - Le operazioni CRUD e di calcolo permessi sono protette da controlli automatici tramite il permission system del framework
-
-## How to Use It
-
-### 1. Import del modulo
-Aggiungi il modulo Permission e i suoi sottoprogetti al tuo progetto:
-
-```gradle
-implementation 'it.water.permission:Permission-api:${waterVersion}'
-implementation 'it.water.permission:Permission-model:${waterVersion}'
-implementation 'it.water.permission:Permission-service:${waterVersion}'
+    B -->|defines| F[PermissionApi / PermissionSystemApi / PermissionRestApi]
+    C -->|entity| G[WaterPermission]
+    D -->|implementation| H[Services + Repository + REST Controller]
+    E -->|Spring variant| I[Spring-specific beans]
 ```
 
-### 2. Esempio di utilizzo API
+## Sub-modules
+
+| Sub-module | Description |
+|---|---|
+| **Permission-api** | Defines `PermissionApi`, `PermissionSystemApi`, `PermissionRestApi`, and `PermissionRepository` interfaces |
+| **Permission-model** | Contains the `WaterPermission` JPA entity |
+| **Permission-service** | Service implementations, repository, and REST controller |
+| **Permission-service-spring** | Spring-specific service registration |
+
+## WaterPermission Entity
+
+```java
+@Entity
+@Table(uniqueConstraints =
+    @UniqueConstraint(columnNames = {"roleId", "userId", "entityResourceName", "resourceId"}))
+@AccessControl(availableActions = { CrudActions.class },
+    rolesPermissions = {
+        @DefaultRoleAccess(roleName = "permissionManager", actions = { "save","update","find","find_all","remove" }),
+        @DefaultRoleAccess(roleName = "permissionViewer", actions = { "find","find_all" }),
+        @DefaultRoleAccess(roleName = "permissionEditor", actions = { "save","update","find","find_all" })
+    })
+public class WaterPermission extends AbstractJpaEntity implements ProtectedEntity { }
+```
+
+### Entity Fields
+
+| Field | Type | Constraints | Description |
+|---|---|---|---|
+| `name` | String | `@NotNull` | Permission name |
+| `actionIds` | long | — | Bitmask of allowed actions |
+| `entityResourceName` | String | `@NotNull` | Target entity class name |
+| `resourceId` | long | — | Target entity ID (0 = all instances) |
+| `roleId` | long | — | Role to which this permission is assigned |
+| `userId` | long | — | User to which this permission is assigned (alternative to role) |
+
+The unique constraint on `(roleId, userId, entityResourceName, resourceId)` prevents duplicate permission assignments.
+
+### How Permissions Work
+
+```mermaid
+graph LR
+    subgraph Assignment
+        R[Role] -->|roleId| P[WaterPermission]
+        U[User] -->|userId| P
+    end
+    subgraph Target
+        P -->|entityResourceName| E[Entity Type]
+        P -->|resourceId| I[Entity Instance]
+        P -->|actionIds| A[Action Bitmask]
+    end
+    subgraph Check
+        F[@AllowPermissions] -->|triggers| PM[PermissionManager]
+        PM -->|looks up| P
+        PM -->|verifies| A
+    end
+```
+
+Permissions can be assigned to either a **role** or a **user** directly:
+- **Role-based**: All users with that role inherit the permission
+- **User-based**: The permission applies only to that specific user
+
+The `actionIds` field is a **bitmask** — each action has a power-of-2 value, and multiple actions can be combined with bitwise OR.
+
+## Default Roles
+
+| Role | Permissions |
+|---|---|
+| **permissionManager** | `save`, `update`, `find`, `find_all`, `remove` |
+| **permissionViewer** | `find`, `find_all` |
+| **permissionEditor** | `save`, `update`, `find`, `find_all` |
+
+## API Interfaces
+
+### PermissionApi (Public — with permission checks)
+
+Standard CRUD operations on `WaterPermission`, plus:
+
+| Method | Description |
+|---|---|
+| `entityPermissionMap(Map<String, List<Long>>)` | Compute a permission map for the logged-in user across multiple entities and instances |
+
+### PermissionSystemApi (System — no permission checks)
+
+Same operations without permission enforcement, for internal service use.
+
+### REST Endpoints
+
+| HTTP Method | Path | Description |
+|---|---|---|
+| `POST` | `/water/permissions` | Create permission |
+| `PUT` | `/water/permissions` | Update permission |
+| `GET` | `/water/permissions/{id}` | Find permission by ID |
+| `GET` | `/water/permissions` | Find all permissions (paginated) |
+| `DELETE` | `/water/permissions/{id}` | Remove permission |
+| `POST` | `/water/permissions/map` | Compute permission map for logged-in user |
+
+### Permission Map
+
+The `entityPermissionMap` endpoint returns a nested map showing what actions are allowed for the current user:
+
+```json
+// Request
+POST /water/permissions/map
+{ "com.example.Product": [1, 2, 3] }
+
+// Response
+{
+  "com.example.Product": {
+    "1": { "save": true, "remove": false, "find": true },
+    "2": { "save": true, "remove": true, "find": true },
+    "3": { "save": false, "remove": false, "find": true }
+  }
+}
+```
+
+## Usage Example
+
 ```java
 @Inject
 private PermissionApi permissionApi;
 
-// Creazione permesso
-WaterPermission perm = new WaterPermission("permName", 1L, "ResourceName", 123L, roleId, userId);
+// Create a permission: grant SAVE+FIND on Product to roleId=5
+WaterPermission perm = new WaterPermission();
+perm.setName("product-editor-perm");
+perm.setActionIds(CrudActions.SAVE.getActionId() | CrudActions.FIND.getActionId());
+perm.setEntityResourceName("com.example.Product");
+perm.setResourceId(0);  // 0 = all instances
+perm.setRoleId(5);
 permissionApi.save(perm);
 
-// Calcolo mappa permessi per utente loggato
-Map<String, Map<String, Map<String, Boolean>>> map = permissionApi.entityPermissionMap(Map.of("ResourceName", List.of(123L, 456L)));
-
-// CRUD e query
-WaterPermission found = permissionApi.find(perm.getId());
-permissionApi.update(found);
-permissionApi.remove(found.getId());
+// Compute permission map for logged-in user
+Map<String, List<Long>> request = Map.of("com.example.Product", List.of(1L, 2L));
+Map<String, Map<String, Map<String, Boolean>>> map = permissionApi.entityPermissionMap(request);
 ```
 
-### 3. Esempio REST
-```http
-POST /permissions
-{
-  "name": "permName",
-  "actionIds": 1,
-  "entityResourceName": "ResourceName",
-  "resourceId": 123,
-  "roleId": 1,
-  "userId": 2
-}
+## Defining Custom Actions
 
-POST /permissions/map
-{
-  "ResourceName": [123, 456]
-}
-```
+To define custom actions for your entities:
 
-## Properties and Configurations
-
-### Proprietà principali
-- **Nessuna proprietà obbligatoria specifica**: il modulo si integra con le property core del framework e con la configurazione JPA standard.
-- **Tabella JPA:** la tabella `WaterPermission` ha unique constraint su `(roleId, userId, entityResourceName, resourceId)`.
-- **Azioni custom:** le azioni disponibili sono configurabili tramite il sistema di action del framework.
-
-### Proprietà dai test
-- I test utilizzano ruoli e utenti di default (`permissionManager`, `permissionViewer`, `permissionEditor`)
-- Le azioni sono gestite tramite `ActionsManager` e `ActionFactory`
-- Persistence unit di default: `water-default-persistence-unit`
-
-## How to Customize Behaviours for This Module
-
-### 1. Definire nuove azioni custom
-Aggiungi nuove azioni tramite il sistema di action del framework:
 ```java
-public class MyActions extends DefaultActionList {
-    public static final ResourceAction<?> CUSTOM_ACTION = new ResourceAction<>("customAction");
+public class ProductActions extends DefaultActionList {
+    public static final ResourceAction<?> PUBLISH = new ResourceAction<>("publish");
+    public static final ResourceAction<?> ARCHIVE = new ResourceAction<>("archive");
 }
 ```
 
-### 2. Estendere la logica di validazione o repository
-Estendi i service/repository per aggiungere logica custom:
+Then reference them in `@AccessControl`:
+
 ```java
-@FrameworkComponent
-public class CustomPermissionService extends PermissionServiceImpl {
-    @Override
-    public WaterPermission save(WaterPermission entity) {
-        // logica custom
-        return super.save(entity);
-    }
-}
+@AccessControl(
+    availableActions = { CrudActions.class, ProductActions.class },
+    rolesPermissions = {
+        @DefaultRoleAccess(roleName = "productManager",
+            actions = { "save","update","find","find_all","remove","publish","archive" })
+    })
+public class Product extends AbstractJpaEntity implements ProtectedEntity { }
 ```
 
-### 3. Personalizzare le policy di accesso
-Utilizza le annotazioni `@AccessControl` e `@DefaultRoleAccess` sulle entità per definire policy custom.
+## Dependencies
 
-### 4. Override delle API REST
-Estendi o sostituisci i controller REST per aggiungere endpoint o logica custom.
-
-### 5. Test personalizzati
-Utilizza i test di esempio (`PermissionApiTest`) come base per testare policy, ruoli, azioni e permessi custom.
-
----
-
-Il modulo Permission fornisce un sistema robusto, estendibile e centralizzato per la gestione dei permessi e delle policy di sicurezza nelle applicazioni Water Framework, con supporto completo a ruoli, utenti, azioni custom e REST API.
-
+- **Core-api** — Base interfaces, `PermissionManager`, `SecurityContext`
+- **Core-model** — `AbstractJpaEntity`, `ProtectedEntity`
+- **Core-permission** — `@AccessControl`, `@DefaultRoleAccess`, `CrudActions`, `ActionFactory`
+- **Core-security** — Security annotations
+- **Role** — Role management for role-based permissions
+- **Repository / JpaRepository** — Persistence layer
+- **Rest** — REST controller infrastructure
