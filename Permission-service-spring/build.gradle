@@ -58,4 +58,10 @@ publishing {
         	}
     }
  }
- 
+
+waterDescriptor {
+    moduleId    = 'it.water.permission.spring'
+    displayName = 'Permission Service Spring'
+    description = 'Spring Boot runtime variant of Permission Service'
+    inheritsFrom project(':Permission-service')
+}

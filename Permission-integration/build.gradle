@@ -63,3 +63,17 @@ publishing {
         	}
     }
  }
+
+waterDescriptor {
+    moduleId    = 'it.water.permission.integration'
+    displayName = 'Permission Service Integration Client'
+    description = 'Remote REST integration client for permission and access control checks across Water Framework microservices'
+
+    output {
+        pin('it.water.integration.permission') {}
+    }
+
+    input {
+        standardPin 'service-discovery'
+    }
+}

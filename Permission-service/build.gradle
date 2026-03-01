@@ -90,3 +90,14 @@ publishing {
         	}
     }
  }
+
+waterDescriptor {
+    moduleId    = 'it.water.permission'
+    displayName = 'Permission Service'
+    description = 'Permission management and access control enforcement for Water Framework entities'
+
+    input {
+        standardPin 'jdbc'
+        standardPin 'service-discovery'
+    }
+}
